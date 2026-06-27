@@ -1,4 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { UserStatus } from "@/lib/generated/prisma";
+import { resolveActivationRedirect } from "@/lib/auth/activation-guard";
 import { updateSession } from "@/lib/supabase/middleware";
 
 export async function middleware(request: NextRequest): Promise<NextResponse> {
@@ -6,6 +8,7 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
 
   const isProtectedRoute = pathname.startsWith("/dashboard");
+  const redirectTo = request.nextUrl.searchParams.get("redirectTo");
 
   if (!user && isProtectedRoute) {
     const redirectUrl = request.nextUrl.clone();
@@ -14,12 +17,38 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     return NextResponse.redirect(redirectUrl);
   }
 
-  if (user && pathname === "/") {
-    const redirectTo =
-      request.nextUrl.searchParams.get("redirectTo") ?? "/dashboard";
-    const safeRedirect = redirectTo.startsWith("/") ? redirectTo : "/dashboard";
+  const activationRedirect = resolveActivationRedirect({
+    isAuthenticated: Boolean(user),
+    profileStatus: user?.profileStatus ?? null,
+    pathname,
+    redirectTo,
+  });
+
+  if (activationRedirect) {
     const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = safeRedirect;
+    redirectUrl.pathname = activationRedirect;
+    if (activationRedirect !== "/dashboard") {
+      redirectUrl.search = "";
+    } else {
+      redirectUrl.search = "";
+    }
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  if (!user && pathname === "/ativar-conta") {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = "/";
+    redirectUrl.search = "";
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  if (
+    user &&
+    user.profileStatus === UserStatus.SUSPENDED &&
+    (isProtectedRoute || pathname === "/ativar-conta")
+  ) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = "/";
     redirectUrl.search = "";
     return NextResponse.redirect(redirectUrl);
   }
@@ -31,6 +60,7 @@ export const config = {
   matcher: [
     "/",
     "/dashboard/:path*",
+    "/ativar-conta",
     "/esqueci-senha",
     "/redefinir-senha",
     "/auth/callback",

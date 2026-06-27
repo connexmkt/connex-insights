@@ -54,7 +54,7 @@ Perfil de aplicação vinculado 1:1 ao usuário Supabase Auth.
 | `tenant_id` | `UUID` | NOT NULL, FK → `tenants.id` | Tenant ao qual o usuário pertence |
 | `display_name` | `TEXT` | NOT NULL | Nome exibido na UI |
 | `role` | `ENUM` | NOT NULL, DEFAULT `MEMBER` | `MEMBER` \| `TENANT_ADMIN` \| `PLATFORM_ADMIN` |
-| `status` | `ENUM` | NOT NULL, DEFAULT `ACTIVE` | `ACTIVE` \| `INACTIVE` \| `SUSPENDED` |
+| `status` | `ENUM` | NOT NULL, DEFAULT `INACTIVE` | `ACTIVE` \| `INACTIVE` \| `SUSPENDED` |
 | `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT now() | Data de criação |
 | `updated_at` | `TIMESTAMPTZ` | NOT NULL | Data de atualização |
 
@@ -65,7 +65,8 @@ Perfil de aplicação vinculado 1:1 ao usuário Supabase Auth.
 
 **Constraints**:
 - Um usuário pertence a exatamente um tenant (coluna `tenant_id` NOT NULL, sem tabela de membership).
-- Usuários `INACTIVE` ou `SUSPENDED` não devem autenticar (validado na camada de auth).
+- Usuários `INACTIVE` podem autenticar-se exclusivamente para concluir o fluxo de ativação de conta (feature 002); não acessam o dashboard até `status = ACTIVE`.
+- Usuários `SUSPENDED` não devem autenticar (validado na camada de auth).
 
 **RLS**:
 - SELECT: `id = auth.uid()` OR (`tenant_id = current_tenant_id()` AND role IN tenant-visible scope)

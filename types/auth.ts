@@ -1,4 +1,4 @@
-import type { UserRole } from "@/lib/generated/prisma";
+import { UserStatus, type UserRole } from "@/lib/generated/prisma";
 
 export interface AuthUser {
   id: string;
@@ -29,4 +29,10 @@ export interface SessionPayload {
 
 export interface AuthenticatedRequestContext {
   tenantContext: TenantContext;
+}
+
+export interface PreActivationContext {
+  userId: string;
+  email: string;
+  status: typeof UserStatus.INACTIVE;
 }

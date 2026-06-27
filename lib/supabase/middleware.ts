@@ -1,9 +1,16 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { UserStatus } from "@/lib/generated/prisma";
+import { readProfileStatusFromAuthUser } from "@/lib/auth/profile-metadata";
+
+export interface MiddlewareUser {
+  id: string;
+  profileStatus: UserStatus | null;
+}
 
 export async function updateSession(
   request: NextRequest,
-): Promise<{ response: NextResponse; user: { id: string } | null }> {
+): Promise<{ response: NextResponse; user: MiddlewareUser | null }> {
   let supabaseResponse = NextResponse.next({ request });
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -34,5 +41,15 @@ export async function updateSession(
     data: { user },
   } = await supabase.auth.getUser();
 
-  return { response: supabaseResponse, user: user ? { id: user.id } : null };
+  if (!user) {
+    return { response: supabaseResponse, user: null };
+  }
+
+  return {
+    response: supabaseResponse,
+    user: {
+      id: user.id,
+      profileStatus: readProfileStatusFromAuthUser(user),
+    },
+  };
 }

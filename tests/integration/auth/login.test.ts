@@ -27,4 +27,19 @@ describe("login API contract", () => {
     expect(errorShape.error).not.toMatch(/senha incorreta/i);
     expect(errorShape.error).not.toMatch(/e-mail não encontrado/i);
   });
+
+  it("defines inactive account success shape with activation redirect", () => {
+    const inactiveSuccess = {
+      success: true,
+      requiresActivation: true,
+      redirectTo: "/ativar-conta",
+      user: {
+        id: "user-id",
+        email: "novo@gammastartup.com",
+      },
+    };
+
+    expect(inactiveSuccess.requiresActivation).toBe(true);
+    expect(inactiveSuccess.redirectTo).toBe("/ativar-conta");
+  });
 });
