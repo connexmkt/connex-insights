@@ -33,16 +33,18 @@ export const currentUser = {
 
 export type SocialNetwork = {
   id: string
-  label: string
-  available: boolean
+  name: string
+  handle: string
+  color: string
+  connected: boolean
 }
 
 export const networks: SocialNetwork[] = [
-  { id: "instagram", label: "Instagram", available: true },
-  { id: "tiktok", label: "TikTok", available: false },
-  { id: "facebook", label: "Facebook", available: false },
-  { id: "linkedin", label: "LinkedIn", available: false },
-  { id: "youtube", label: "YouTube", available: false },
+  { id: "instagram", name: "Instagram", handle: "@auroracosmeticos", color: "#E1306C", connected: true },
+  { id: "tiktok", name: "TikTok", handle: "@auroracosmeticos", color: "#161622", connected: false },
+  { id: "facebook", name: "Facebook", handle: "/auroracosmeticos", color: "#1877F2", connected: false },
+  { id: "linkedin", name: "LinkedIn", handle: "/aurora-cosmeticos", color: "#0A66C2", connected: false },
+  { id: "youtube", name: "YouTube", handle: "@auroracosmeticos", color: "#FF0000", connected: false },
 ]
 
 export type MetricCard = {
@@ -253,6 +255,57 @@ export const countryData = [
   { label: "EUA", value: 5 },
   { label: "Argentina", value: 3 },
   { label: "Outros", value: 3 },
+]
+
+export const reports = [
+  {
+    id: "monthly",
+    name: "Resumo Mensal",
+    description: "Visão consolidada de seguidores, alcance e engajamento do mês.",
+    period: "Mensal",
+    frequency: "Todo dia 1º",
+    status: "Agendado",
+  },
+  {
+    id: "campaign",
+    name: "Análise de Campanha",
+    description: "Desempenho detalhado de posts e stories de uma campanha específica.",
+    period: "Sob demanda",
+    frequency: "Manual",
+    status: "Pronto",
+  },
+  {
+    id: "audience",
+    name: "Perfil de Público",
+    description: "Demografia, localização e horários de pico da sua audiência.",
+    period: "Trimestral",
+    frequency: "A cada 90 dias",
+    status: "Agendado",
+  },
+  {
+    id: "competitor",
+    name: "Benchmark Concorrência",
+    description: "Comparativo de crescimento frente aos principais concorrentes.",
+    period: "Mensal",
+    frequency: "Todo dia 5",
+    status: "Pronto",
+  },
+  {
+    id: "stories",
+    name: "Performance de Stories",
+    description: "Taxa de retenção, saídas e respostas dos stories publicados.",
+    period: "Semanal",
+    frequency: "Toda segunda",
+    status: "Agendado",
+  },
+  {
+    id: "executive",
+    name: "Relatório Executivo",
+    description: "Resumo de alto nível com KPIs e recomendações da IA.",
+    period: "Mensal",
+    frequency: "Manual",
+    status: "Pronto",
+  },
 ]
 
 // Calendar publication frequency: value = number of posts that day (0-3)
