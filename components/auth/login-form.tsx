@@ -2,8 +2,9 @@
 
 import type React from "react";
 
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,17 +12,57 @@ import { Label } from "@/components/ui/label";
 
 export function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState("marina@auroracosmeticos.com");
-  const [password, setPassword] = useState("connex2026");
+  const [error, setError] = useState<string | null>(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit(event: React.FormEvent): Promise<void> {
+    event.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      router.push("/dashboard");
-    }, 900);
+    setError(null);
+
+    const redirectTo = searchParams.get("redirectTo") ?? "/dashboard";
+    const query = redirectTo !== "/dashboard" ? `?redirectTo=${encodeURIComponent(redirectTo)}` : "";
+
+    try {
+      const response = await fetch(`/api/auth/login${query}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const payload: unknown = await response.json();
+
+      if (!response.ok) {
+        const message =
+          typeof payload === "object" &&
+          payload !== null &&
+          "error" in payload &&
+          typeof payload.error === "string"
+            ? payload.error
+            : "E-mail ou senha incorretos.";
+        setError(message);
+        return;
+      }
+
+      const redirectPath =
+        typeof payload === "object" &&
+        payload !== null &&
+        "redirectTo" in payload &&
+        typeof payload.redirectTo === "string"
+          ? payload.redirectTo
+          : "/dashboard";
+
+      router.push(redirectPath);
+      router.refresh();
+    } catch {
+      setError("Ocorreu um erro. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -34,7 +75,7 @@ export function LoginForm() {
           autoComplete="email"
           placeholder="voce@empresa.com"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(event) => setEmail(event.target.value)}
           required
         />
       </div>
@@ -42,12 +83,12 @@ export function LoginForm() {
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label htmlFor="password">Senha</Label>
-          <button
-            type="button"
+          <Link
+            href="/esqueci-senha"
             className="text-xs font-medium text-primary transition-colors hover:text-primary/80"
           >
             Esqueci minha senha
-          </button>
+          </Link>
         </div>
         <div className="relative">
           <Input
@@ -56,13 +97,13 @@ export function LoginForm() {
             autoComplete="current-password"
             placeholder="••••••••"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(event) => setPassword(event.target.value)}
             required
             className="pr-10"
           />
           <button
             type="button"
-            onClick={() => setShowPassword((s) => !s)}
+            onClick={() => setShowPassword((current) => !current)}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
             aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
           >
@@ -75,6 +116,12 @@ export function LoginForm() {
         </div>
       </div>
 
+      {error ? (
+        <p className="text-sm text-destructive" role="alert">
+          {error}
+        </p>
+      ) : null}
+
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? (
           <>
@@ -85,10 +132,6 @@ export function LoginForm() {
           "Entrar"
         )}
       </Button>
-
-      <p className="text-center text-xs text-muted-foreground">
-        Use as credenciais preenchidas para acessar a demonstração.
-      </p>
     </form>
   );
 }

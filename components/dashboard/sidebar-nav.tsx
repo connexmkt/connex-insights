@@ -18,6 +18,7 @@ import {
 import { cn } from "@/lib/utils";
 import { ConnexLogo } from "@/components/connex-logo";
 import { Badge } from "@/components/ui/badge";
+import { LogoutButton } from "@/components/auth/logout-button";
 
 type NavItem = {
   label: string;
@@ -119,13 +120,10 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       </nav>
 
       <div className="border-t border-sidebar-border p-3">
-        <Link
-          href="/"
-          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
-        >
+        <LogoutButton className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
           <LogOut className="size-[18px]" />
           Sair
-        </Link>
+        </LogoutButton>
       </div>
     </div>
   );
