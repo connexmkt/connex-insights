@@ -1,0 +1,118 @@
+"use client"
+
+import { Bell, Calendar, Menu, Search, Settings } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
+import { SidebarNav } from "@/components/dashboard/sidebar-nav"
+import { currentUser, tenant } from "@/lib/connex-data"
+
+const periods = ["Últimos 7 dias", "Últimos 30 dias", "Últimos 90 dias", "Últimos 12 meses"]
+
+export function DashboardHeader({
+  period,
+  onPeriodChange,
+}: {
+  period: string
+  onPeriodChange: (p: string) => void
+}) {
+  return (
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-md lg:px-6">
+      {/* Mobile menu */}
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button variant="ghost" size="icon" className="lg:hidden">
+            <Menu className="size-5" />
+            <span className="sr-only">Abrir menu</span>
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left" className="w-72 p-0">
+          <SheetTitle className="sr-only">Navegação</SheetTitle>
+          <SidebarNav />
+        </SheetContent>
+      </Sheet>
+
+      <div className="flex min-w-0 items-center gap-2.5">
+        <span className="hidden truncate text-sm font-semibold sm:inline">{tenant.name}</span>
+        <Badge variant="secondary" className="hidden text-[11px] sm:inline-flex">
+          {tenant.plan}
+        </Badge>
+      </div>
+
+      <div className="ml-auto flex items-center gap-2">
+        <div className="relative hidden md:block">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input placeholder="Buscar..." className="h-9 w-48 pl-9 lg:w-56" />
+        </div>
+
+        {/* Seletor de período */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="gap-2">
+              <Calendar className="size-4" />
+              <span className="hidden sm:inline">{period}</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {periods.map((p) => (
+              <DropdownMenuItem key={p} onClick={() => onPeriodChange(p)}>
+                {p}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <Button variant="ghost" size="icon" className="relative">
+          <Bell className="size-5" />
+          <span className="absolute right-2 top-2 size-2 rounded-full bg-primary ring-2 ring-background" />
+          <span className="sr-only">Notificações</span>
+        </Button>
+
+        <Button variant="ghost" size="icon" className="hidden sm:inline-flex">
+          <Settings className="size-5" />
+          <span className="sr-only">Configurações</span>
+        </Button>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center gap-2 rounded-full pl-1 outline-none">
+              <Avatar className="size-9">
+                <AvatarFallback className="bg-primary/10 text-sm font-semibold text-primary">
+                  {currentUser.initials}
+                </AvatarFallback>
+              </Avatar>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>
+              <div className="flex flex-col">
+                <span className="text-sm font-medium">{currentUser.name}</span>
+                <span className="text-xs font-normal text-muted-foreground">{currentUser.email}</span>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>Perfil</DropdownMenuItem>
+            <DropdownMenuItem>Configurações</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive">Sair</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </header>
+  )
+}
