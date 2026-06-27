@@ -1,0 +1,325 @@
+openapi: 3.1.0
+info:
+  title: Connex Insights — Auth API
+  version: 1.0.0
+  description: |
+    Endpoints de autenticação e recuperação de senha.
+    Todos os endpoints protegidos validam sessão Supabase + contexto de tenant.
+    Sign-up público não existe — qualquer tentativa retorna 404/405.
+
+servers:
+  - url: /api
+    description: Next.js Route Handlers
+
+paths:
+  /auth/login:
+    post:
+      operationId: login
+      summary: Autenticar usuário com e-mail e senha
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login bem-sucedido; sessão criada via cookie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSuccessResponse'
+        '401':
+          description: Credenciais inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthErrorResponse'
+        '403':
+          description: Conta inativa ou suspensa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthErrorResponse'
+        '422':
+          description: Payload inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '429':
+          description: Rate limit excedido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthErrorResponse'
+
+  /auth/logout:
+    post:
+      operationId: logout
+      summary: Encerrar sessão do usuário
+      tags: [Auth]
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Sessão encerrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+        '401':
+          description: Sessão inválida ou expirada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthErrorResponse'
+
+  /auth/session:
+    get:
+      operationId: getSession
+      summary: Obter sessão e contexto de tenant do usuário autenticado
+      tags: [Auth]
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Sessão válida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '401':
+          description: Não autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthErrorResponse'
+
+  /auth/forgot-password:
+    post:
+      operationId: forgotPassword
+      summary: Solicitar e-mail de redefinição de senha
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordRequest'
+      responses:
+        '200':
+          description: |
+            Sempre retorna sucesso genérico (anti-enumeração),
+            independentemente de o e-mail existir.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForgotPasswordResponse'
+        '422':
+          description: E-mail com formato inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '429':
+          description: Rate limit excedido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthErrorResponse'
+
+  /auth/reset-password:
+    post:
+      operationId: resetPassword
+      summary: Definir nova senha (requer sessão de recovery)
+      tags: [Auth]
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        '200':
+          description: Senha atualizada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  message:
+                    type: string
+                    example: Senha redefinida com sucesso.
+        '401':
+          description: Sessão de recovery inválida ou expirada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthErrorResponse'
+        '422':
+          description: Senha não atende critérios mínimos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+
+  /auth/callback:
+    get:
+      operationId: authCallback
+      summary: Callback OAuth/PKCE do Supabase Auth (troca code por sessão)
+      tags: [Auth]
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: next
+          in: query
+          schema:
+            type: string
+            default: /dashboard
+      responses:
+        '302':
+          description: Redirect para destino após troca de sessão
+        '400':
+          description: Code inválido ou ausente
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sb-access-token
+      description: Sessão Supabase gerenciada via cookies HTTP-only (@supabase/ssr)
+
+  schemas:
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: marina@auroracosmeticos.com
+        password:
+          type: string
+          minLength: 1
+          example: '********'
+
+    ForgotPasswordRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+
+    ResetPasswordRequest:
+      type: object
+      required: [password]
+      properties:
+        password:
+          type: string
+          minLength: 8
+          description: Mínimo 8 caracteres, 1 letra e 1 número
+
+    AuthSuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        user:
+          $ref: '#/components/schemas/SessionUser'
+        redirectTo:
+          type: string
+          example: /dashboard
+
+    SessionResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/SessionUser'
+        tenant:
+          $ref: '#/components/schemas/TenantSummary'
+
+    SessionUser:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        displayName:
+          type: string
+        role:
+          type: string
+          enum: [MEMBER, TENANT_ADMIN, PLATFORM_ADMIN]
+
+    TenantSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        plan:
+          type: string
+
+    ForgotPasswordResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+          example: Se o e-mail estiver cadastrado, você receberá instruções para redefinir sua senha.
+
+    AuthErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: E-mail ou senha incorretos.
+        code:
+          type: string
+          enum:
+            - INVALID_CREDENTIALS
+            - ACCOUNT_INACTIVE
+            - SESSION_EXPIRED
+            - RATE_LIMITED
+            - INTERNAL_ERROR
+
+    ValidationErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Dados inválidos.
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string

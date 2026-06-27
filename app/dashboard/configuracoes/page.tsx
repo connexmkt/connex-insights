@@ -1,25 +1,27 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
-import { Switch } from "@/components/ui/switch"
-import { Separator } from "@/components/ui/separator"
-import { networks, currentUser, tenant } from "@/lib/connex-data"
-import { Check, Plus } from "lucide-react"
+import { useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
+import { networks, currentUser, tenant } from "@/lib/connex-data";
+import { Check, Plus } from "lucide-react";
 
 export default function ConfiguracoesPage() {
-  const [notifEmail, setNotifEmail] = useState(true)
-  const [notifWeekly, setNotifWeekly] = useState(true)
-  const [notifAlerts, setNotifAlerts] = useState(false)
+  const [notifEmail, setNotifEmail] = useState(true);
+  const [notifWeekly, setNotifWeekly] = useState(true);
+  const [notifAlerts, setNotifAlerts] = useState(false);
 
   return (
     <div className="max-w-3xl space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Configurações</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          Configurações
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Gerencie sua conta, redes conectadas e preferências de notificação.
         </p>
@@ -27,7 +29,9 @@ export default function ConfiguracoesPage() {
 
       <Card className="p-6">
         <h2 className="text-base font-semibold text-foreground">Perfil</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Informações da sua conta na {tenant.name}.</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Informações da sua conta na {tenant.name}.
+        </p>
         <Separator className="my-5" />
         <div className="grid gap-5 sm:grid-cols-2">
           <div className="space-y-2">
@@ -53,7 +57,9 @@ export default function ConfiguracoesPage() {
       </Card>
 
       <Card className="p-6">
-        <h2 className="text-base font-semibold text-foreground">Redes conectadas</h2>
+        <h2 className="text-base font-semibold text-foreground">
+          Redes conectadas
+        </h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Conecte as redes sociais que deseja monitorar no painel.
         </p>
@@ -73,19 +79,28 @@ export default function ConfiguracoesPage() {
                   {network.name.charAt(0)}
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-foreground">{network.name}</p>
+                  <p className="text-sm font-medium text-foreground">
+                    {network.name}
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     {network.connected ? network.handle : "Não conectado"}
                   </p>
                 </div>
               </div>
               {network.connected ? (
-                <Badge variant="secondary" className="gap-1 bg-chart-2/15 text-chart-2">
+                <Badge
+                  variant="secondary"
+                  className="gap-1 bg-chart-2/15 text-chart-2"
+                >
                   <Check className="size-3" />
                   Conectado
                 </Badge>
               ) : (
-                <Button variant="outline" size="sm" className="gap-1.5 bg-transparent">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 bg-transparent"
+                >
                   <Plus className="size-3.5" />
                   Conectar
                 </Button>
@@ -96,8 +111,12 @@ export default function ConfiguracoesPage() {
       </Card>
 
       <Card className="p-6">
-        <h2 className="text-base font-semibold text-foreground">Notificações</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Escolha como deseja ser avisado.</p>
+        <h2 className="text-base font-semibold text-foreground">
+          Notificações
+        </h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Escolha como deseja ser avisado.
+        </p>
         <Separator className="my-5" />
         <div className="space-y-5">
           {[
@@ -120,16 +139,25 @@ export default function ConfiguracoesPage() {
               set: setNotifAlerts,
             },
           ].map((item) => (
-            <div key={item.title} className="flex items-center justify-between gap-4">
+            <div
+              key={item.title}
+              className="flex items-center justify-between gap-4"
+            >
               <div>
-                <p className="text-sm font-medium text-foreground">{item.title}</p>
+                <p className="text-sm font-medium text-foreground">
+                  {item.title}
+                </p>
                 <p className="text-xs text-muted-foreground">{item.desc}</p>
               </div>
-              <Switch checked={item.state} onCheckedChange={item.set} aria-label={item.title} />
+              <Switch
+                checked={item.state}
+                onCheckedChange={item.set}
+                aria-label={item.title}
+              />
             </div>
           ))}
         </div>
       </Card>
     </div>
-  )
+  );
 }

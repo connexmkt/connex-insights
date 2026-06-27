@@ -1,15 +1,25 @@
-import type { Metadata } from "next"
-import { LoginForm } from "@/components/auth/login-form"
-import { ConnexLogo } from "@/components/connex-logo"
+import type { Metadata } from "next";
+import { Suspense } from "react";
+import { LoginForm } from "@/components/auth/login-form";
+import { ConnexLogo } from "@/components/connex-logo";
 
 export const metadata: Metadata = {
   title: "Entrar — Connex Insights",
+};
+
+function LoginFormFallback() {
+  return (
+    <div className="space-y-5">
+      <div className="h-10 animate-pulse rounded-md bg-muted" />
+      <div className="h-10 animate-pulse rounded-md bg-muted" />
+      <div className="h-10 animate-pulse rounded-md bg-muted" />
+    </div>
+  );
 }
 
 export default function LoginPage() {
   return (
     <main className="flex min-h-svh w-full">
-      {/* Painel do formulário */}
       <div className="flex w-full flex-col px-6 py-8 sm:px-10 lg:w-[46%] lg:px-16">
         <header>
           <ConnexLogo />
@@ -22,10 +32,13 @@ export default function LoginPage() {
                 Bem-vindo de volta
               </h1>
               <p className="text-sm leading-relaxed text-muted-foreground">
-                Acesse o painel para acompanhar o desempenho das suas redes sociais em tempo real.
+                Acesse o painel para acompanhar o desempenho das suas redes
+                sociais em tempo real.
               </p>
             </div>
-            <LoginForm />
+            <Suspense fallback={<LoginFormFallback />}>
+              <LoginForm />
+            </Suspense>
           </div>
         </div>
 
@@ -34,7 +47,6 @@ export default function LoginPage() {
         </footer>
       </div>
 
-      {/* Painel ilustrativo */}
       <aside className="relative hidden overflow-hidden bg-[#161622] lg:block lg:w-[54%]">
         <img
           src="/login-data-art.png"
@@ -47,10 +59,11 @@ export default function LoginPage() {
             Transforme dados em decisões inteligentes para a sua marca.
           </p>
           <p className="mt-3 max-w-md text-sm leading-relaxed text-white/70">
-            Métricas, insights de IA e relatórios profissionais — tudo centralizado em uma única plataforma.
+            Métricas, insights de IA e relatórios profissionais — tudo
+            centralizado em uma única plataforma.
           </p>
         </div>
       </aside>
     </main>
-  )
+  );
 }

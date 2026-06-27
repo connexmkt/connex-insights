@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -9,15 +9,15 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { topPosts, type Post } from "@/lib/connex-data"
+} from "@/components/ui/table";
+import { topPosts, type Post } from "@/lib/connex-data";
 
 const typeVariant: Record<Post["type"], string> = {
   Reel: "bg-accent text-accent-foreground",
   Carrossel: "bg-success/10 text-success",
   Imagem: "bg-warning/10 text-warning",
   Story: "bg-muted text-muted-foreground",
-}
+};
 
 export function TopPosts() {
   return (
@@ -38,8 +38,12 @@ export function TopPosts() {
                 <TableHead>Data</TableHead>
                 <TableHead className="text-right">Alcance</TableHead>
                 <TableHead className="text-right">Curtidas</TableHead>
-                <TableHead className="hidden text-right md:table-cell">Comentários</TableHead>
-                <TableHead className="hidden text-right md:table-cell">Compart.</TableHead>
+                <TableHead className="hidden text-right md:table-cell">
+                  Comentários
+                </TableHead>
+                <TableHead className="hidden text-right md:table-cell">
+                  Compart.
+                </TableHead>
                 <TableHead className="pr-6 text-right">Engaj.</TableHead>
               </TableRow>
             </TableHeader>
@@ -53,17 +57,28 @@ export function TopPosts() {
                         alt=""
                         className="size-10 shrink-0 rounded-md object-cover"
                       />
-                      <span className="max-w-[200px] truncate text-sm font-medium">{post.title}</span>
+                      <span className="max-w-[200px] truncate text-sm font-medium">
+                        {post.title}
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="secondary" className={typeVariant[post.type]}>
+                    <Badge
+                      variant="secondary"
+                      className={typeVariant[post.type]}
+                    >
                       {post.type}
                     </Badge>
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm text-muted-foreground">{post.date}</TableCell>
-                  <TableCell className="text-right text-sm tabular-nums">{post.reach}</TableCell>
-                  <TableCell className="text-right text-sm tabular-nums">{post.likes}</TableCell>
+                  <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
+                    {post.date}
+                  </TableCell>
+                  <TableCell className="text-right text-sm tabular-nums">
+                    {post.reach}
+                  </TableCell>
+                  <TableCell className="text-right text-sm tabular-nums">
+                    {post.likes}
+                  </TableCell>
                   <TableCell className="hidden text-right text-sm tabular-nums md:table-cell">
                     {post.comments}
                   </TableCell>
@@ -80,5 +95,5 @@ export function TopPosts() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

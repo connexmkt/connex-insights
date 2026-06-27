@@ -1,13 +1,13 @@
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 export function ConnexLogo({
   className,
   showText = true,
   textClassName,
 }: {
-  className?: string
-  showText?: boolean
-  textClassName?: string
+  className?: string;
+  showText?: boolean;
+  textClassName?: string;
 }) {
   return (
     <div className="flex items-center gap-2.5">
@@ -30,10 +30,15 @@ export function ConnexLogo({
         </svg>
       </div>
       {showText && (
-        <span className={cn("font-heading text-[15px] font-semibold tracking-tight", textClassName)}>
+        <span
+          className={cn(
+            "font-heading text-[15px] font-semibold tracking-tight",
+            textClassName,
+          )}
+        >
           Connex Insights
         </span>
       )}
     </div>
-  )
+  );
 }

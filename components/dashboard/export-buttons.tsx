@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { FileText, Sheet } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { FileText, Sheet } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export function ExportButtons() {
   return (
@@ -15,5 +15,5 @@ export function ExportButtons() {
         <span className="hidden sm:inline">Exportar</span> CSV
       </Button>
     </div>
-  )
+  );
 }

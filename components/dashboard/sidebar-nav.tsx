@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Camera,
@@ -14,17 +14,18 @@ import {
   Settings,
   HelpCircle,
   LogOut,
-} from "lucide-react"
-import { cn } from "@/lib/utils"
-import { ConnexLogo } from "@/components/connex-logo"
-import { Badge } from "@/components/ui/badge"
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { ConnexLogo } from "@/components/connex-logo";
+import { Badge } from "@/components/ui/badge";
+import { LogoutButton } from "@/components/auth/logout-button";
 
 type NavItem = {
-  label: string
-  href?: string
-  icon: typeof LayoutDashboard
-  soon?: boolean
-}
+  label: string;
+  href?: string;
+  icon: typeof LayoutDashboard;
+  soon?: boolean;
+};
 
 const mainNav: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -33,17 +34,17 @@ const mainNav: NavItem[] = [
   { label: "Facebook", icon: Users, soon: true },
   { label: "LinkedIn", icon: Briefcase, soon: true },
   { label: "YouTube", icon: Play, soon: true },
-]
+];
 
 const workNav: NavItem[] = [
   { label: "Relatórios", href: "/dashboard/relatorios", icon: FileBarChart },
   { label: "Exportações", href: "/dashboard/relatorios", icon: Download },
   { label: "Configurações", href: "/dashboard/configuracoes", icon: Settings },
   { label: "Ajuda", href: "/dashboard/ajuda", icon: HelpCircle },
-]
+];
 
 function NavLink({ item, active }: { item: NavItem; active: boolean }) {
-  const Icon = item.icon
+  const Icon = item.icon;
   const content = (
     <span
       className={cn(
@@ -58,21 +59,24 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
       <Icon className="size-[18px] shrink-0" />
       <span className="flex-1 truncate">{item.label}</span>
       {item.soon && (
-        <Badge variant="secondary" className="h-5 px-1.5 text-[10px] font-medium">
+        <Badge
+          variant="secondary"
+          className="h-5 px-1.5 text-[10px] font-medium"
+        >
           Em breve
         </Badge>
       )}
     </span>
-  )
+  );
 
   if (item.soon || !item.href) {
-    return <div aria-disabled>{content}</div>
+    return <div aria-disabled>{content}</div>;
   }
-  return <Link href={item.href}>{content}</Link>
+  return <Link href={item.href}>{content}</Link>;
 }
 
 export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   return (
     <div className="flex h-full flex-col bg-sidebar">
@@ -80,7 +84,10 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         <ConnexLogo />
       </div>
 
-      <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-4" onClick={onNavigate}>
+      <nav
+        className="flex-1 space-y-6 overflow-y-auto px-3 py-4"
+        onClick={onNavigate}
+      >
         <div className="space-y-1">
           <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
             Visão geral
@@ -89,7 +96,11 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
             <NavLink
               key={item.label}
               item={item}
-              active={!item.soon && item.href === pathname && item.label === "Dashboard"}
+              active={
+                !item.soon &&
+                item.href === pathname &&
+                item.label === "Dashboard"
+              }
             />
           ))}
         </div>
@@ -99,20 +110,21 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
             Workspace
           </p>
           {workNav.map((item) => (
-            <NavLink key={item.label} item={item} active={item.href === pathname} />
+            <NavLink
+              key={item.label}
+              item={item}
+              active={item.href === pathname}
+            />
           ))}
         </div>
       </nav>
 
       <div className="border-t border-sidebar-border p-3">
-        <Link
-          href="/"
-          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
-        >
+        <LogoutButton className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
           <LogOut className="size-[18px]" />
           Sair
-        </Link>
+        </LogoutButton>
       </div>
     </div>
-  )
+  );
 }

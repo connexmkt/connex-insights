@@ -1,34 +1,39 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { cn } from "@/lib/utils"
-import { publicationDays } from "@/lib/connex-data"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { publicationDays } from "@/lib/connex-data";
 
-const weekDays = ["S", "T", "Q", "Q", "S", "S", "D"]
+const weekDays = ["S", "T", "Q", "Q", "S", "S", "D"];
 
 const levelStyles = [
   "bg-muted",
   "bg-primary/30",
   "bg-primary/60",
   "bg-primary",
-]
+];
 
 export function PublicationCalendar() {
-  const days = publicationDays()
-  const total = days.reduce((acc, d) => acc + d.posts, 0)
+  const days = publicationDays();
+  const total = days.reduce((acc, d) => acc + d.posts, 0);
   // offset to start on a weekday (assume month starts on Wed = index 2)
-  const offset = 2
+  const offset = 2;
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Calendário de Publicações</CardTitle>
-        <p className="mt-1 text-sm text-muted-foreground">Frequência de postagens em junho.</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Frequência de postagens em junho.
+        </p>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-7 gap-1.5">
           {weekDays.map((d, i) => (
-            <div key={i} className="pb-1 text-center text-[11px] font-medium text-muted-foreground">
+            <div
+              key={i}
+              className="pb-1 text-center text-[11px] font-medium text-muted-foreground"
+            >
               {d}
             </div>
           ))}
@@ -69,5 +74,5 @@ export function PublicationCalendar() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
