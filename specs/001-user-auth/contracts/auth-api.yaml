@@ -37,7 +37,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/AuthErrorResponse'
         '403':
-          description: Conta inativa ou suspensa
+          description: Conta suspensa ou não encontrada
           content:
             application/json:
               schema:
@@ -54,6 +54,49 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthErrorResponse'
+
+  /auth/activate:
+    post:
+      operationId: activateAccount
+      summary: Concluir ativação de conta com troca de senha
+      tags: [Auth]
+      security:
+        - cookieAuth: []
+      description: |
+        Exige sessão de pré-ativação (conta INACTIVE).
+        Valida senha temporária, define nova senha e ativa a conta.
+        `userId` e `tenantId` nunca são aceitos no body — derivados da sessão.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivateAccountRequest'
+      responses:
+        '200':
+          description: Conta ativada; sessão de aplicação disponível
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivateAccountResponse'
+        '401':
+          description: Sessão expirada ou senha temporária incorreta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthErrorResponse'
+        '409':
+          description: Conta já ativa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthErrorResponse'
+        '422':
+          description: Payload inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
 
   /auth/logout:
     post:
@@ -235,14 +278,42 @@ components:
           minLength: 8
           description: Mínimo 8 caracteres, 1 letra e 1 número
 
+    ActivateAccountRequest:
+      type: object
+      required: [temporaryPassword, password, confirmPassword]
+      properties:
+        temporaryPassword:
+          type: string
+          minLength: 1
+        password:
+          type: string
+          minLength: 8
+          description: Mínimo 8 caracteres, 1 letra e 1 número
+        confirmPassword:
+          type: string
+          minLength: 8
+
     AuthSuccessResponse:
       type: object
       properties:
         success:
           type: boolean
           const: true
+        requiresActivation:
+          type: boolean
+          description: true quando conta INACTIVE — redirecionar à ativação
         user:
           $ref: '#/components/schemas/SessionUser'
+        redirectTo:
+          type: string
+          example: /dashboard
+
+    ActivateAccountResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
         redirectTo:
           type: string
           example: /dashboard
@@ -303,7 +374,10 @@ components:
           type: string
           enum:
             - INVALID_CREDENTIALS
-            - ACCOUNT_INACTIVE
+            - ACCOUNT_SUSPENDED
+            - ACCOUNT_NOT_FOUND
+            - INVALID_TEMPORARY_PASSWORD
+            - ACCOUNT_ALREADY_ACTIVE
             - SESSION_EXPIRED
             - RATE_LIMITED
             - INTERNAL_ERROR

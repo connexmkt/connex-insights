@@ -1,16 +1,20 @@
 import { UserStatus } from "@/lib/generated/prisma";
 import { prisma } from "@/lib/db/prisma";
 import { createClient } from "@/lib/supabase/server";
-import type { SessionPayload, TenantContext } from "@/types/auth";
+import type { PreActivationContext, SessionPayload, TenantContext } from "@/types/auth";
+
+export async function getProfileByUserId(userId: string) {
+  return prisma.profile.findUnique({
+    where: { id: userId },
+    include: { tenant: true },
+  });
+}
 
 async function buildSessionPayload(
   userId: string,
   email: string,
 ): Promise<SessionPayload | null> {
-  const profile = await prisma.profile.findUnique({
-    where: { id: userId },
-    include: { tenant: true },
-  });
+  const profile = await getProfileByUserId(userId);
 
   if (!profile || profile.status !== UserStatus.ACTIVE) {
     return null;
@@ -58,5 +62,28 @@ export async function getTenantContext(): Promise<TenantContext | null> {
     displayName: session.user.displayName,
     role: session.user.role,
     tenant: session.tenant,
+  };
+}
+
+export async function getPreActivationContext(): Promise<PreActivationContext | null> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user?.email) {
+    return null;
+  }
+
+  const profile = await getProfileByUserId(user.id);
+
+  if (!profile || profile.status !== UserStatus.INACTIVE) {
+    return null;
+  }
+
+  return {
+    userId: user.id,
+    email: user.email,
+    status: UserStatus.INACTIVE,
   };
 }

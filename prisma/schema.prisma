@@ -35,7 +35,7 @@ model Profile {
   tenantId    String     @map("tenant_id") @db.Uuid
   displayName String     @map("display_name")
   role        UserRole   @default(MEMBER)
-  status      UserStatus @default(ACTIVE)
+  status      UserStatus @default(INACTIVE)
   createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
   tenant      Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)

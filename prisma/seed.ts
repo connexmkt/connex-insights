@@ -1,8 +1,10 @@
 import "dotenv/config";
 import { createClient } from "@supabase/supabase-js";
 import { prisma } from "../lib/db/prisma";
-import { UserRole } from "../lib/generated/prisma";
+import { buildProfileStatusMetadata } from "../lib/auth/profile-metadata";
+import { UserRole, UserStatus } from "../lib/generated/prisma";
 import {
+  SEED_INACTIVE_USER,
   SEED_TENANT_A,
   SEED_TENANT_B,
 } from "../tests/helpers/seed-fixtures";
@@ -28,6 +30,7 @@ async function ensureAuthUser(
   email: string,
   password: string,
   tenantId: string,
+  profileStatus: UserStatus,
 ): Promise<string> {
   const { data: existingUsers } = await admin.auth.admin.listUsers();
   const existing = existingUsers.users.find((user) => user.email === email);
@@ -35,7 +38,10 @@ async function ensureAuthUser(
   if (existing) {
     await admin.auth.admin.updateUserById(existing.id, {
       password,
-      app_metadata: { tenant_id: tenantId },
+      app_metadata: {
+        tenant_id: tenantId,
+        ...buildProfileStatusMetadata(profileStatus),
+      },
       email_confirm: true,
     });
     return existing.id;
@@ -45,7 +51,10 @@ async function ensureAuthUser(
     email,
     password,
     email_confirm: true,
-    app_metadata: { tenant_id: tenantId },
+    app_metadata: {
+      tenant_id: tenantId,
+      ...buildProfileStatusMetadata(profileStatus),
+    },
   });
 
   if (error || !data.user) {
@@ -84,11 +93,25 @@ async function main(): Promise<void> {
     },
   });
 
+  await prisma.tenant.upsert({
+    where: { id: SEED_INACTIVE_USER.tenantId },
+    update: {
+      name: SEED_INACTIVE_USER.tenantName,
+      slug: SEED_INACTIVE_USER.tenantSlug,
+    },
+    create: {
+      id: SEED_INACTIVE_USER.tenantId,
+      name: SEED_INACTIVE_USER.tenantName,
+      slug: SEED_INACTIVE_USER.tenantSlug,
+    },
+  });
+
   const userAId = await ensureAuthUser(
     admin,
     SEED_TENANT_A.userEmail,
     SEED_TENANT_A.userPassword,
     SEED_TENANT_A.id,
+    UserStatus.ACTIVE,
   );
 
   const userBId = await ensureAuthUser(
@@ -96,6 +119,15 @@ async function main(): Promise<void> {
     SEED_TENANT_B.userEmail,
     SEED_TENANT_B.userPassword,
     SEED_TENANT_B.id,
+    UserStatus.ACTIVE,
+  );
+
+  const inactiveUserId = await ensureAuthUser(
+    admin,
+    SEED_INACTIVE_USER.userEmail,
+    SEED_INACTIVE_USER.temporaryPassword,
+    SEED_INACTIVE_USER.tenantId,
+    UserStatus.INACTIVE,
   );
 
   await prisma.profile.upsert({
@@ -104,12 +136,14 @@ async function main(): Promise<void> {
       tenantId: SEED_TENANT_A.id,
       displayName: SEED_TENANT_A.displayName,
       role: UserRole.MEMBER,
+      status: UserStatus.ACTIVE,
     },
     create: {
       id: userAId,
       tenantId: SEED_TENANT_A.id,
       displayName: SEED_TENANT_A.displayName,
       role: UserRole.MEMBER,
+      status: UserStatus.ACTIVE,
     },
   });
 
@@ -119,18 +153,40 @@ async function main(): Promise<void> {
       tenantId: SEED_TENANT_B.id,
       displayName: SEED_TENANT_B.displayName,
       role: UserRole.MEMBER,
+      status: UserStatus.ACTIVE,
     },
     create: {
       id: userBId,
       tenantId: SEED_TENANT_B.id,
       displayName: SEED_TENANT_B.displayName,
       role: UserRole.MEMBER,
+      status: UserStatus.ACTIVE,
+    },
+  });
+
+  await prisma.profile.upsert({
+    where: { id: inactiveUserId },
+    update: {
+      tenantId: SEED_INACTIVE_USER.tenantId,
+      displayName: SEED_INACTIVE_USER.displayName,
+      role: UserRole.MEMBER,
+      status: UserStatus.INACTIVE,
+    },
+    create: {
+      id: inactiveUserId,
+      tenantId: SEED_INACTIVE_USER.tenantId,
+      displayName: SEED_INACTIVE_USER.displayName,
+      role: UserRole.MEMBER,
+      status: UserStatus.INACTIVE,
     },
   });
 
   console.log("Seed concluído:");
-  console.log(`- ${SEED_TENANT_A.userEmail} / ${SEED_TENANT_A.userPassword}`);
-  console.log(`- ${SEED_TENANT_B.userEmail} / ${SEED_TENANT_B.userPassword}`);
+  console.log(`- ${SEED_TENANT_A.userEmail} / ${SEED_TENANT_A.userPassword} (ACTIVE)`);
+  console.log(`- ${SEED_TENANT_B.userEmail} / ${SEED_TENANT_B.userPassword} (ACTIVE)`);
+  console.log(
+    `- ${SEED_INACTIVE_USER.userEmail} / ${SEED_INACTIVE_USER.temporaryPassword} (INACTIVE)`,
+  );
 }
 
 main()

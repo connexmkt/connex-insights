@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { UserStatus } from "@/lib/generated/prisma";
+import { ACTIVATION_PATH } from "@/lib/auth/activation-guard";
 import { loginSchema } from "@/lib/auth/schemas";
+import { syncProfileStatusMetadata } from "@/lib/auth/sync-profile-metadata";
 import { prisma } from "@/lib/db/prisma";
 import { createClient } from "@/lib/supabase/server";
 
@@ -35,12 +37,34 @@ export async function POST(request: Request): Promise<Response> {
     where: { id: data.user.id },
   });
 
-  if (!profile || profile.status !== UserStatus.ACTIVE) {
+  if (!profile) {
     await supabase.auth.signOut();
     return NextResponse.json(
-      { error: "Acesso não autorizado.", code: "ACCOUNT_INACTIVE" },
+      { error: "Acesso não autorizado.", code: "ACCOUNT_NOT_FOUND" },
       { status: 403 },
     );
+  }
+
+  await syncProfileStatusMetadata(data.user.id, profile.status);
+
+  if (profile.status === UserStatus.SUSPENDED) {
+    await supabase.auth.signOut();
+    return NextResponse.json(
+      { error: "Acesso não autorizado.", code: "ACCOUNT_SUSPENDED" },
+      { status: 403 },
+    );
+  }
+
+  if (profile.status === UserStatus.INACTIVE) {
+    return NextResponse.json({
+      success: true,
+      requiresActivation: true,
+      redirectTo: ACTIVATION_PATH,
+      user: {
+        id: data.user.id,
+        email: data.user.email,
+      },
+    });
   }
 
   const requestUrl = new URL(request.url);
@@ -49,6 +73,7 @@ export async function POST(request: Request): Promise<Response> {
 
   return NextResponse.json({
     success: true,
+    requiresActivation: false,
     redirectTo,
     user: {
       id: data.user.id,

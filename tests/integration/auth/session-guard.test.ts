@@ -1,4 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { UserStatus } from "@/lib/generated/prisma";
+import {
+  ACTIVATION_PATH,
+  resolveActivationRedirect,
+} from "@/lib/auth/activation-guard";
 
 describe("session guard rules", () => {
   it("redirects unauthenticated users from dashboard to login with redirectTo", () => {
@@ -10,10 +15,34 @@ describe("session guard rules", () => {
     expect(redirectUrl.searchParams.get("redirectTo")).toBe(pathname);
   });
 
-  it("redirects authenticated users from login to dashboard", () => {
-    const redirectTo = "/dashboard";
-    const safeRedirect = redirectTo.startsWith("/") ? redirectTo : "/dashboard";
-    expect(safeRedirect).toBe("/dashboard");
+  it("redirects authenticated active users from login to dashboard", () => {
+    const redirect = resolveActivationRedirect({
+      isAuthenticated: true,
+      profileStatus: UserStatus.ACTIVE,
+      pathname: "/",
+    });
+
+    expect(redirect).toBe("/dashboard");
+  });
+
+  it("redirects authenticated inactive users from login to activation", () => {
+    const redirect = resolveActivationRedirect({
+      isAuthenticated: true,
+      profileStatus: UserStatus.INACTIVE,
+      pathname: "/",
+    });
+
+    expect(redirect).toBe(ACTIVATION_PATH);
+  });
+
+  it("redirects unauthenticated users from activation to login", () => {
+    const redirect = resolveActivationRedirect({
+      isAuthenticated: false,
+      profileStatus: null,
+      pathname: ACTIVATION_PATH,
+    });
+
+    expect(redirect).toBe("/");
   });
 
   it("rejects open redirect attempts", () => {
