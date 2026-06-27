@@ -18,7 +18,6 @@ function buildContext(tenantId: string, role: UserRole = UserRole.MEMBER): Tenan
       id: tenantId,
       name: "Tenant",
       slug: "tenant",
-      plan: "Plan",
     },
   };
 }

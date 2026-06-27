@@ -27,7 +27,6 @@ async function buildSessionPayload(
       id: profile.tenant.id,
       name: profile.tenant.name,
       slug: profile.tenant.slug,
-      plan: profile.tenant.plan,
     },
   };
 }

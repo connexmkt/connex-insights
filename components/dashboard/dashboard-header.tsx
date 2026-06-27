@@ -4,7 +4,6 @@ import { Bell, Calendar, Menu, Search, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -71,12 +70,6 @@ export function DashboardHeader({
         <span className="hidden truncate text-sm font-semibold sm:inline">
           {session.tenant.name}
         </span>
-        <Badge
-          variant="secondary"
-          className="hidden text-[11px] sm:inline-flex"
-        >
-          {session.tenant.plan}
-        </Badge>
       </div>
 
       <div className="ml-auto flex items-center gap-2">

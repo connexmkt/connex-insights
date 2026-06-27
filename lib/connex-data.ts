@@ -14,13 +14,11 @@ import {
 
 export type Tenant = {
   name: string;
-  plan: string;
   handle: string;
 };
 
 export const tenant: Tenant = {
   name: "Aurora Cosméticos",
-  plan: "Plano Growth",
   handle: "@auroracosmeticos",
 };
 

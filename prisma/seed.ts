@@ -63,13 +63,11 @@ async function main(): Promise<void> {
     update: {
       name: SEED_TENANT_A.name,
       slug: SEED_TENANT_A.slug,
-      plan: SEED_TENANT_A.plan,
     },
     create: {
       id: SEED_TENANT_A.id,
       name: SEED_TENANT_A.name,
       slug: SEED_TENANT_A.slug,
-      plan: SEED_TENANT_A.plan,
     },
   });
 
@@ -78,13 +76,11 @@ async function main(): Promise<void> {
     update: {
       name: SEED_TENANT_B.name,
       slug: SEED_TENANT_B.slug,
-      plan: SEED_TENANT_B.plan,
     },
     create: {
       id: SEED_TENANT_B.id,
       name: SEED_TENANT_B.name,
       slug: SEED_TENANT_B.slug,
-      plan: SEED_TENANT_B.plan,
     },
   });
 

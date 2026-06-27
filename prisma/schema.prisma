@@ -5,7 +5,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 enum UserRole {
@@ -24,7 +23,6 @@ model Tenant {
   id        String    @id @default(uuid()) @db.Uuid
   name      String
   slug      String    @unique
-  plan      String
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
   profiles  Profile[]

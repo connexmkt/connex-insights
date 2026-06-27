@@ -19,7 +19,6 @@ describe("tenant isolation", () => {
         id: SEED_TENANT_A.id,
         name: SEED_TENANT_A.name,
         slug: SEED_TENANT_A.slug,
-        plan: SEED_TENANT_A.plan,
       },
     };
 
@@ -39,7 +38,6 @@ describe("tenant isolation", () => {
         id: SEED_TENANT_A.id,
         name: SEED_TENANT_A.name,
         slug: SEED_TENANT_A.slug,
-        plan: SEED_TENANT_A.plan,
       },
     };
 

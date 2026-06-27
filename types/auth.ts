@@ -11,7 +11,6 @@ export interface TenantSummary {
   id: string;
   name: string;
   slug: string;
-  plan: string;
 }
 
 export interface TenantContext {
