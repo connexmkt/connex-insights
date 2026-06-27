@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { Bell, Calendar, Menu, Search, Settings } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
+import { Bell, Calendar, Menu, Search, Settings } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,24 +12,29 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   Sheet,
   SheetContent,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet"
-import { SidebarNav } from "@/components/dashboard/sidebar-nav"
-import { currentUser, tenant } from "@/lib/connex-data"
+} from "@/components/ui/sheet";
+import { SidebarNav } from "@/components/dashboard/sidebar-nav";
+import { currentUser, tenant } from "@/lib/connex-data";
 
-const periods = ["Últimos 7 dias", "Últimos 30 dias", "Últimos 90 dias", "Últimos 12 meses"]
+const periods = [
+  "Últimos 7 dias",
+  "Últimos 30 dias",
+  "Últimos 90 dias",
+  "Últimos 12 meses",
+];
 
 export function DashboardHeader({
   period,
   onPeriodChange,
 }: {
-  period: string
-  onPeriodChange: (p: string) => void
+  period: string;
+  onPeriodChange: (p: string) => void;
 }) {
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-md lg:px-6">
@@ -48,8 +53,13 @@ export function DashboardHeader({
       </Sheet>
 
       <div className="flex min-w-0 items-center gap-2.5">
-        <span className="hidden truncate text-sm font-semibold sm:inline">{tenant.name}</span>
-        <Badge variant="secondary" className="hidden text-[11px] sm:inline-flex">
+        <span className="hidden truncate text-sm font-semibold sm:inline">
+          {tenant.name}
+        </span>
+        <Badge
+          variant="secondary"
+          className="hidden text-[11px] sm:inline-flex"
+        >
           {tenant.plan}
         </Badge>
       </div>
@@ -102,7 +112,9 @@ export function DashboardHeader({
             <DropdownMenuLabel>
               <div className="flex flex-col">
                 <span className="text-sm font-medium">{currentUser.name}</span>
-                <span className="text-xs font-normal text-muted-foreground">{currentUser.email}</span>
+                <span className="text-xs font-normal text-muted-foreground">
+                  {currentUser.email}
+                </span>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
@@ -114,5 +126,5 @@ export function DashboardHeader({
         </DropdownMenu>
       </div>
     </header>
-  )
+  );
 }

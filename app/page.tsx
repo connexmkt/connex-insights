@@ -1,10 +1,10 @@
-import type { Metadata } from "next"
-import { LoginForm } from "@/components/auth/login-form"
-import { ConnexLogo } from "@/components/connex-logo"
+import type { Metadata } from "next";
+import { LoginForm } from "@/components/auth/login-form";
+import { ConnexLogo } from "@/components/connex-logo";
 
 export const metadata: Metadata = {
   title: "Entrar — Connex Insights",
-}
+};
 
 export default function LoginPage() {
   return (
@@ -22,7 +22,8 @@ export default function LoginPage() {
                 Bem-vindo de volta
               </h1>
               <p className="text-sm leading-relaxed text-muted-foreground">
-                Acesse o painel para acompanhar o desempenho das suas redes sociais em tempo real.
+                Acesse o painel para acompanhar o desempenho das suas redes
+                sociais em tempo real.
               </p>
             </div>
             <LoginForm />
@@ -47,10 +48,11 @@ export default function LoginPage() {
             Transforme dados em decisões inteligentes para a sua marca.
           </p>
           <p className="mt-3 max-w-md text-sm leading-relaxed text-white/70">
-            Métricas, insights de IA e relatórios profissionais — tudo centralizado em uma única plataforma.
+            Métricas, insights de IA e relatórios profissionais — tudo
+            centralizado em uma única plataforma.
           </p>
         </div>
       </aside>
     </main>
-  )
+  );
 }
