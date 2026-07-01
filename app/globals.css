@@ -141,3 +141,41 @@
     @apply font-sans;
   }
 }
+
+@layer components {
+  .legal-content {
+    @apply space-y-10 text-[15px] leading-relaxed text-foreground/90;
+  }
+
+  .legal-content h2 {
+    @apply mb-4 font-heading text-xl font-semibold tracking-tight text-foreground;
+  }
+
+  .legal-content h3 {
+    @apply mt-6 mb-3 font-heading text-base font-semibold text-foreground;
+  }
+
+  .legal-content p {
+    @apply mb-4 text-muted-foreground;
+  }
+
+  .legal-content ul {
+    @apply mb-4 list-disc space-y-2 pl-5 text-muted-foreground;
+  }
+
+  .legal-content li {
+    @apply pl-1;
+  }
+
+  .legal-content strong {
+    @apply font-medium text-foreground;
+  }
+
+  .legal-content code {
+    @apply rounded bg-muted px-1.5 py-0.5 font-mono text-[13px] text-foreground;
+  }
+
+  .legal-content a {
+    @apply text-primary underline-offset-4 transition-colors hover:underline;
+  }
+}

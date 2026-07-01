@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { ConnexLogo } from "@/components/connex-logo";
 
@@ -32,7 +33,15 @@ export function AuthPageShell({
         </div>
 
         <footer className="text-xs text-muted-foreground">
-          {"© 2026 Connex Marketing. Todos os direitos reservados."}
+          <p>{"© 2026 Connex Marketing. Todos os direitos reservados."}</p>
+          <p className="mt-2">
+            <Link
+              href="/privacy"
+              className="transition-colors hover:text-foreground"
+            >
+              Política de Privacidade
+            </Link>
+          </p>
         </footer>
       </div>
 
