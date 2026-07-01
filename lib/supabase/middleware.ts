@@ -1,11 +1,15 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { UserStatus } from "@/lib/generated/prisma";
-import { readProfileStatusFromAuthUser } from "@/lib/auth/profile-metadata";
+import {
+  parseProfileStatus,
+  type ProfileStatus,
+} from "@/lib/auth/user-status";
+
+const PROFILE_STATUS_METADATA_KEY = "profile_status";
 
 export interface MiddlewareUser {
   id: string;
-  profileStatus: UserStatus | null;
+  profileStatus: ProfileStatus | null;
 }
 
 export async function updateSession(
@@ -38,18 +42,21 @@ export async function updateSession(
   });
 
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  if (!user) {
+  const authUser = session?.user;
+  if (!authUser) {
     return { response: supabaseResponse, user: null };
   }
 
   return {
     response: supabaseResponse,
     user: {
-      id: user.id,
-      profileStatus: readProfileStatusFromAuthUser(user),
+      id: authUser.id,
+      profileStatus: parseProfileStatus(
+        authUser.app_metadata[PROFILE_STATUS_METADATA_KEY],
+      ),
     },
   };
 }

@@ -1,21 +1,13 @@
 import type { User } from "@supabase/supabase-js";
-import { UserStatus } from "@/lib/generated/prisma";
+import type { UserStatus } from "@/lib/generated/prisma";
+import { parseProfileStatus } from "@/lib/auth/user-status";
 
 const PROFILE_STATUS_METADATA_KEY = "profile_status";
 
 export function readProfileStatusFromAuthUser(
   user: User,
 ): UserStatus | null {
-  const status = user.app_metadata[PROFILE_STATUS_METADATA_KEY];
-
-  switch (status) {
-    case UserStatus.ACTIVE:
-    case UserStatus.INACTIVE:
-    case UserStatus.SUSPENDED:
-      return status;
-    default:
-      return null;
-  }
+  return parseProfileStatus(user.app_metadata[PROFILE_STATUS_METADATA_KEY]);
 }
 
 export function buildProfileStatusMetadata(

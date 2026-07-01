@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { resolveActivationRedirect } from "@/lib/auth/activation-guard";
+import { USER_STATUS } from "@/lib/auth/user-status";
 import { updateSession } from "@/lib/supabase/middleware";
 
 export async function middleware(request: NextRequest): Promise<NextResponse> {
@@ -8,12 +9,6 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
 
   const isProtectedRoute = pathname.startsWith("/dashboard");
   const redirectTo = request.nextUrl.searchParams.get("redirectTo");
-
-  const USER_STATUS = {
-    ACTIVE: "ACTIVE",
-    INACTIVE: "INACTIVE",
-    SUSPENDED: "SUSPENDED",
-  } as const;
 
   if (!user && isProtectedRoute) {
     const redirectUrl = request.nextUrl.clone();
