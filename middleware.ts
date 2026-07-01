@@ -1,5 +1,4 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { UserStatus } from "@/lib/generated/prisma";
 import { resolveActivationRedirect } from "@/lib/auth/activation-guard";
 import { updateSession } from "@/lib/supabase/middleware";
 
@@ -9,6 +8,12 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
 
   const isProtectedRoute = pathname.startsWith("/dashboard");
   const redirectTo = request.nextUrl.searchParams.get("redirectTo");
+
+  const USER_STATUS = {
+    ACTIVE: "ACTIVE",
+    INACTIVE: "INACTIVE",
+    SUSPENDED: "SUSPENDED",
+  } as const;
 
   if (!user && isProtectedRoute) {
     const redirectUrl = request.nextUrl.clone();
@@ -44,7 +49,7 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
 
   if (
     user &&
-    user.profileStatus === UserStatus.SUSPENDED &&
+    user.profileStatus === USER_STATUS.SUSPENDED &&
     (isProtectedRoute || pathname === "/ativar-conta")
   ) {
     const redirectUrl = request.nextUrl.clone();
