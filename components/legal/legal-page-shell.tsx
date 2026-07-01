@@ -43,12 +43,20 @@ export function LegalPageShell({
       <footer className="border-t border-border">
         <div className="mx-auto flex max-w-3xl flex-col gap-2 px-6 py-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-8">
           <span>© 2026 Connex Marketing. Todos os direitos reservados.</span>
-          <Link
-            href="/privacy"
-            className="transition-colors hover:text-foreground"
-          >
-            Política de Privacidade
-          </Link>
+          <nav className="flex flex-wrap gap-x-4 gap-y-1">
+            <Link
+              href="/terms"
+              className="transition-colors hover:text-foreground"
+            >
+              Termos de Serviço
+            </Link>
+            <Link
+              href="/privacy"
+              className="transition-colors hover:text-foreground"
+            >
+              Política de Privacidade
+            </Link>
+          </nav>
         </div>
       </footer>
     </div>

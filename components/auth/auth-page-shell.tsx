@@ -34,7 +34,13 @@ export function AuthPageShell({
 
         <footer className="text-xs text-muted-foreground">
           <p>{"© 2026 Connex Marketing. Todos os direitos reservados."}</p>
-          <p className="mt-2">
+          <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+            <Link
+              href="/terms"
+              className="transition-colors hover:text-foreground"
+            >
+              Termos de Serviço
+            </Link>
             <Link
               href="/privacy"
               className="transition-colors hover:text-foreground"
