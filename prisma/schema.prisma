@@ -19,13 +19,45 @@ enum UserStatus {
   SUSPENDED
 }
 
+enum InstagramIntegrationStatus {
+  CONNECTED
+  DISCONNECTED
+  REQUIRES_RECONNECTION
+}
+
+enum InstagramSyncStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+enum InstagramAccountType {
+  BUSINESS
+  MEDIA_CREATOR
+}
+
+enum InstagramSyncJobType {
+  INITIAL
+  INCREMENTAL
+  TOKEN_REFRESH
+}
+
+enum InstagramSyncJobStatus {
+  PENDING
+  RUNNING
+  SUCCEEDED
+  FAILED
+}
+
 model Tenant {
-  id        String    @id @default(uuid()) @db.Uuid
-  name      String
-  slug      String    @unique
-  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
-  profiles  Profile[]
+  id                   String                @id @default(uuid()) @db.Uuid
+  name                 String
+  slug                 String                @unique
+  createdAt            DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
+  profiles             Profile[]
+  instagramIntegration InstagramIntegration?
 
   @@map("tenants")
 }
@@ -43,4 +75,92 @@ model Profile {
   @@index([tenantId])
   @@index([tenantId, status])
   @@map("profiles")
+}
+
+model InstagramIntegration {
+  id                      String                     @id @default(uuid()) @db.Uuid
+  tenantId                String                     @unique @map("tenant_id") @db.Uuid
+  instagramUserId         String                     @map("instagram_user_id")
+  instagramProfessionalId String                     @unique @map("instagram_professional_id")
+  username                String
+  displayName             String?                    @map("display_name")
+  accountType             InstagramAccountType       @map("account_type")
+  profilePictureUrl       String?                    @map("profile_picture_url")
+  followersCount          Int?                       @map("followers_count")
+  followsCount            Int?                       @map("follows_count")
+  mediaCount              Int?                       @map("media_count")
+  status                  InstagramIntegrationStatus @default(CONNECTED)
+  syncStatus              InstagramSyncStatus        @default(PENDING) @map("sync_status")
+  lastSyncedAt            DateTime?                  @map("last_synced_at") @db.Timestamptz(6)
+  connectedAt             DateTime?                  @map("connected_at") @db.Timestamptz(6)
+  disconnectedAt          DateTime?                  @map("disconnected_at") @db.Timestamptz(6)
+  connectedByUserId       String                     @map("connected_by_user_id") @db.Uuid
+  createdAt               DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime                   @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant     Tenant               @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  credential InstagramCredential?
+  media      InstagramMedia[]
+  syncJobs   InstagramSyncJob[]
+
+  @@index([status])
+  @@index([tenantId, status])
+  @@map("instagram_integrations")
+}
+
+model InstagramCredential {
+  id              String    @id @default(uuid()) @db.Uuid
+  integrationId   String    @unique @map("integration_id") @db.Uuid
+  tenantId        String    @map("tenant_id") @db.Uuid
+  accessTokenEnc  String    @map("access_token_enc")
+  tokenExpiresAt  DateTime  @map("token_expires_at") @db.Timestamptz(6)
+  scopesGranted   String[]  @map("scopes_granted")
+  lastRefreshedAt DateTime? @map("last_refreshed_at") @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  integration InstagramIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  @@index([tokenExpiresAt])
+  @@map("instagram_credentials")
+}
+
+model InstagramMedia {
+  id              String    @id @default(uuid()) @db.Uuid
+  tenantId        String    @map("tenant_id") @db.Uuid
+  integrationId   String    @map("integration_id") @db.Uuid
+  externalMediaId String    @map("external_media_id")
+  mediaType       String    @map("media_type")
+  caption         String?
+  permalink       String?
+  thumbnailUrl    String?   @map("thumbnail_url")
+  publishedAt     DateTime? @map("published_at") @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  integration InstagramIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  @@unique([integrationId, externalMediaId])
+  @@index([tenantId])
+  @@index([integrationId, publishedAt(sort: Desc)])
+  @@map("instagram_media")
+}
+
+model InstagramSyncJob {
+  id            String                 @id @default(uuid()) @db.Uuid
+  tenantId      String                 @map("tenant_id") @db.Uuid
+  integrationId String                 @map("integration_id") @db.Uuid
+  jobType       InstagramSyncJobType   @map("job_type")
+  status        InstagramSyncJobStatus
+  startedAt     DateTime?              @map("started_at") @db.Timestamptz(6)
+  completedAt   DateTime?              @map("completed_at") @db.Timestamptz(6)
+  errorCode     String?                @map("error_code")
+  errorMessage  String?                @map("error_message")
+  createdAt     DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  integration InstagramIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  @@index([integrationId, status])
+  @@index([tenantId, createdAt(sort: Desc)])
+  @@map("instagram_sync_jobs")
 }
