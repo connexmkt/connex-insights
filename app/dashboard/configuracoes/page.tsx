@@ -14,8 +14,14 @@ import { currentUser, tenant } from "@/lib/connex-data";
 function InstagramSection(): React.JSX.Element {
   const searchParams = useSearchParams();
   const callbackStatus = searchParams.get("instagram");
+  const callbackDetail = searchParams.get("instagram_detail");
 
-  return <InstagramConnectCard callbackStatus={callbackStatus} />;
+  return (
+    <InstagramConnectCard
+      callbackStatus={callbackStatus}
+      callbackDetail={callbackDetail}
+    />
+  );
 }
 
 export default function ConfiguracoesPage(): React.JSX.Element {

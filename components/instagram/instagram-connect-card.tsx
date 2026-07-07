@@ -13,11 +13,16 @@ import type { IntegrationPublic, IntegrationResponse } from "@/types/instagram";
 
 interface InstagramConnectCardProps {
   callbackStatus?: string | null;
+  callbackDetail?: string | null;
 }
 
 const CALLBACK_MESSAGES: Record<string, { title: string; variant: "success" | "error" }> = {
   connected: {
     title: "Instagram conectado com sucesso!",
+    variant: "success",
+  },
+  connected_sync_pending: {
+    title: "Instagram conectado! Sincronização em andamento…",
     variant: "success",
   },
   denied: {
@@ -26,6 +31,50 @@ const CALLBACK_MESSAGES: Record<string, { title: string; variant: "success" | "e
   },
   error: {
     title: "Não foi possível concluir a conexão. Tente novamente.",
+    variant: "error",
+  },
+  missing_code: {
+    title: "Código de autorização não recebido da Meta.",
+    variant: "error",
+  },
+  session_lost: {
+    title: "Sessão expirada durante a conexão. Faça login e tente novamente.",
+    variant: "error",
+  },
+  token_exchange_failed: {
+    title: "Falha ao validar autorização com a Meta (troca de código).",
+    variant: "error",
+  },
+  long_lived_token_failed: {
+    title: "Falha ao obter token de longa duração da Meta.",
+    variant: "error",
+  },
+  profile_fetch_failed: {
+    title: "Falha ao buscar dados do perfil Instagram.",
+    variant: "error",
+  },
+  persist_failed: {
+    title: "Falha ao salvar a integração no Connex.",
+    variant: "error",
+  },
+  sync_failed: {
+    title: "Conta conectada, mas a sincronização inicial falhou.",
+    variant: "error",
+  },
+  database_error: {
+    title: "Erro de banco de dados ao salvar a conexão.",
+    variant: "error",
+  },
+  encryption_error: {
+    title: "Erro na configuração de criptografia de tokens.",
+    variant: "error",
+  },
+  config_error: {
+    title: "Configuração Instagram incompleta no servidor.",
+    variant: "error",
+  },
+  meta_api_error: {
+    title: "A API da Meta retornou um erro.",
     variant: "error",
   },
   unsupported_account: {
@@ -75,6 +124,7 @@ function getConnectionBadge(integration: IntegrationPublic): {
 
 export function InstagramConnectCard({
   callbackStatus,
+  callbackDetail,
 }: InstagramConnectCardProps): React.JSX.Element {
   const [integration, setIntegration] = useState<IntegrationPublic | null>(
     null,
@@ -181,7 +231,19 @@ export function InstagramConnectCard({
           ) : (
             <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
           )}
-          {callbackMessage.title}
+          <div className="space-y-1">
+            <p>{callbackMessage.title}</p>
+            {callbackDetail ? (
+              <p className="text-xs opacity-90">
+                <span className="font-medium">Detalhe:</span> {callbackDetail}
+              </p>
+            ) : null}
+            {callbackStatus && callbackStatus !== "connected" ? (
+              <p className="font-mono text-xs opacity-75">
+                Código: {callbackStatus}
+              </p>
+            ) : null}
+          </div>
         </div>
       ) : null}
 

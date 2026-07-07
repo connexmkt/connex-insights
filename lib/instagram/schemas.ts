@@ -10,12 +10,24 @@ export const instagramCallbackQuerySchema = z.object({
 
 export const instagramCallbackResultSchema = z.enum([
   "connected",
+  "connected_sync_pending",
   "denied",
   "error",
+  "missing_code",
+  "oauth_state_invalid",
+  "session_lost",
   "unsupported_account",
   "already_connected",
   "account_linked_elsewhere",
-  "oauth_state_invalid",
+  "token_exchange_failed",
+  "long_lived_token_failed",
+  "profile_fetch_failed",
+  "persist_failed",
+  "sync_failed",
+  "database_error",
+  "encryption_error",
+  "config_error",
+  "meta_api_error",
 ]);
 
 export type InstagramCallbackResult = z.infer<
