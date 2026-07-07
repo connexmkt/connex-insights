@@ -1,0 +1,270 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import { AlertCircle, Check } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { InstagramConnectButton } from "@/components/instagram/instagram-connect-button";
+import { InstagramProfileSummary } from "@/components/instagram/instagram-profile-summary";
+import { InstagramSyncStatus } from "@/components/instagram/instagram-sync-status";
+import type { IntegrationPublic, IntegrationResponse } from "@/types/instagram";
+
+interface InstagramConnectCardProps {
+  callbackStatus?: string | null;
+}
+
+const CALLBACK_MESSAGES: Record<string, { title: string; variant: "success" | "error" }> = {
+  connected: {
+    title: "Instagram conectado com sucesso!",
+    variant: "success",
+  },
+  denied: {
+    title: "Conexão cancelada. Nenhuma alteração foi feita.",
+    variant: "error",
+  },
+  error: {
+    title: "Não foi possível concluir a conexão. Tente novamente.",
+    variant: "error",
+  },
+  unsupported_account: {
+    title: "Apenas contas Instagram Business ou Creator são suportadas.",
+    variant: "error",
+  },
+  already_connected: {
+    title: "Este workspace já possui uma conta Instagram conectada.",
+    variant: "error",
+  },
+  account_linked_elsewhere: {
+    title: "Esta conta Instagram já está vinculada a outro workspace.",
+    variant: "error",
+  },
+  oauth_state_invalid: {
+    title: "Sessão OAuth expirada. Inicie a conexão novamente.",
+    variant: "error",
+  },
+};
+
+function getConnectionBadge(integration: IntegrationPublic): {
+  label: string;
+  className: string;
+} {
+  switch (integration.status) {
+    case "CONNECTED":
+      return {
+        label: "Conectado",
+        className: "bg-chart-2/15 text-chart-2",
+      };
+    case "DISCONNECTED":
+      return {
+        label: "Desconectado",
+        className: "bg-muted text-muted-foreground",
+      };
+    case "REQUIRES_RECONNECTION":
+      return {
+        label: "Requer reconexão",
+        className: "bg-destructive/15 text-destructive",
+      };
+    default: {
+      const _exhaustive: never = integration.status;
+      throw new Error(`Status não tratado: ${_exhaustive}`);
+    }
+  }
+}
+
+export function InstagramConnectCard({
+  callbackStatus,
+}: InstagramConnectCardProps): React.JSX.Element {
+  const [integration, setIntegration] = useState<IntegrationPublic | null>(
+    null,
+  );
+  const [loading, setLoading] = useState(true);
+  const [disconnecting, setDisconnecting] = useState(false);
+  const [showDisconnectConfirm, setShowDisconnectConfirm] = useState(false);
+  const [retrying, setRetrying] = useState(false);
+
+  const fetchIntegration = useCallback(async (): Promise<void> => {
+    const response = await fetch("/api/instagram/integration");
+    if (!response.ok) {
+      setLoading(false);
+      return;
+    }
+
+    const data = (await response.json()) as IntegrationResponse;
+    setIntegration(data.integration);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    void fetchIntegration();
+  }, [fetchIntegration]);
+
+  useEffect(() => {
+    if (!integration || integration.syncStatus !== "IN_PROGRESS") {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      void fetchIntegration();
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [integration, fetchIntegration]);
+
+  async function handleDisconnect(): Promise<void> {
+    setDisconnecting(true);
+    const response = await fetch("/api/instagram/disconnect", { method: "POST" });
+    setDisconnecting(false);
+    setShowDisconnectConfirm(false);
+
+    if (response.ok) {
+      await fetchIntegration();
+    }
+  }
+
+  async function handleRetrySync(): Promise<void> {
+    setRetrying(true);
+    await fetch("/api/instagram/sync", { method: "POST" });
+    setRetrying(false);
+    await fetchIntegration();
+  }
+
+  const callbackMessage = callbackStatus
+    ? CALLBACK_MESSAGES[callbackStatus]
+    : undefined;
+
+  if (loading) {
+    return (
+      <Card className="p-6">
+        <p className="text-sm text-muted-foreground">Carregando integração…</p>
+      </Card>
+    );
+  }
+
+  const isConnected =
+    integration !== null && integration.status === "CONNECTED";
+  const requiresReconnection =
+    integration?.status === "REQUIRES_RECONNECTION";
+  const isDisconnected = integration?.status === "DISCONNECTED";
+  const showHistoricalProfile =
+    integration !== null && (isConnected || isDisconnected || requiresReconnection);
+
+  return (
+    <Card className="p-6">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-base font-semibold text-foreground">Instagram</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Conecte sua conta Instagram Professional para sincronizar dados.
+          </p>
+        </div>
+        <div
+          className="flex size-9 items-center justify-center rounded-md bg-[#E1306C] text-sm font-semibold text-primary-foreground"
+          aria-hidden
+        >
+          I
+        </div>
+      </div>
+
+      {callbackMessage ? (
+        <div
+          className={`mt-4 flex items-start gap-2 rounded-lg border px-4 py-3 text-sm ${
+            callbackMessage.variant === "success"
+              ? "border-chart-2/30 bg-chart-2/10 text-chart-2"
+              : "border-destructive/30 bg-destructive/10 text-destructive"
+          }`}
+          role="alert"
+        >
+          {callbackMessage.variant === "success" ? (
+            <Check className="mt-0.5 size-4 shrink-0" aria-hidden />
+          ) : (
+            <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
+          )}
+          {callbackMessage.title}
+        </div>
+      ) : null}
+
+      {requiresReconnection ? (
+        <div
+          className="mt-4 flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+          role="alert"
+        >
+          <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
+          Sua autorização expirou. Reconecte para retomar a sincronização.
+        </div>
+      ) : null}
+
+      <Separator className="my-5" />
+
+      {showHistoricalProfile && integration ? (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between gap-4">
+            <InstagramProfileSummary integration={integration} />
+            <Badge
+              variant="secondary"
+              className={getConnectionBadge(integration).className}
+            >
+              {getConnectionBadge(integration).label}
+            </Badge>
+          </div>
+          <InstagramSyncStatus integration={integration} />
+
+          <div className="flex flex-wrap gap-2">
+            {requiresReconnection ? (
+              <InstagramConnectButton reconnect />
+            ) : null}
+            {isDisconnected ? <InstagramConnectButton /> : null}
+            {integration.syncStatus === "FAILED" && isConnected ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => void handleRetrySync()}
+                disabled={retrying}
+              >
+                Tentar sincronizar novamente
+              </Button>
+            ) : null}
+            {isConnected ? (
+              showDisconnectConfirm ? (
+                <>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => void handleDisconnect()}
+                    disabled={disconnecting}
+                  >
+                    Confirmar desconexão
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowDisconnectConfirm(false)}
+                  >
+                    Cancelar
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowDisconnectConfirm(true)}
+                >
+                  Desconectar
+                </Button>
+              )
+            ) : null}
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
+          <div>
+            <p className="text-sm font-medium text-foreground">Instagram</p>
+            <p className="text-xs text-muted-foreground">Não conectado</p>
+          </div>
+          <InstagramConnectButton />
+        </div>
+      )}
+    </Card>
+  );
+}

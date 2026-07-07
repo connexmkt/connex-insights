@@ -1,0 +1,286 @@
+openapi: 3.1.0
+info:
+  title: Connex Insights — Instagram Integration API
+  version: 1.0.0
+  description: |
+    Endpoints para conexão OAuth Instagram Business Login, sincronização e gestão de integração.
+    Tokens OAuth NUNCA são retornados ao cliente.
+    `tenantId` nunca é aceito no body — derivado exclusivamente da sessão.
+
+servers:
+  - url: /api
+    description: Next.js Route Handlers
+
+paths:
+  /instagram/connect:
+    get:
+      operationId: startInstagramOAuth
+      summary: Iniciar fluxo OAuth Instagram Business Login
+      tags: [Instagram]
+      security:
+        - cookieAuth: []
+      description: |
+        Gera `state` CSRF, define cookie HttpOnly e redireciona para
+        `https://www.instagram.com/oauth/authorize`.
+        Requer usuário autenticado com `status = ACTIVE`.
+      responses:
+        '302':
+          description: Redirect para autorização Meta
+        '401':
+          description: Sessão expirada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Tenant já possui integração conectada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/instagram/callback:
+    get:
+      operationId: instagramOAuthCallback
+      summary: Callback OAuth — troca code, persiste integração, inicia sync
+      tags: [Instagram]
+      description: |
+        Endpoint público (redirect da Meta). Valida `state`, troca `code` por tokens,
+        persiste integração e dispara sincronização inicial.
+        Redireciona para `/dashboard/configuracoes` com query params de resultado.
+      parameters:
+        - name: code
+          in: query
+          schema:
+            type: string
+        - name: state
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: error
+          in: query
+          schema:
+            type: string
+        - name: error_reason
+          in: query
+          schema:
+            type: string
+        - name: error_description
+          in: query
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirect para configurações com status
+
+  /instagram/integration:
+    get:
+      operationId: getInstagramIntegration
+      summary: Obter status da integração Instagram do tenant
+      tags: [Instagram]
+      security:
+        - cookieAuth: []
+      description: |
+        Retorna metadados da integração (sem tokens).
+        Inclui status de conexão, sync e dados de perfil sincronizados.
+      responses:
+        '200':
+          description: Integração encontrada ou ausente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationResponse'
+        '401':
+          description: Sessão expirada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /instagram/sync:
+    post:
+      operationId: triggerInstagramSync
+      summary: Disparar sincronização manual (retry)
+      tags: [Instagram]
+      security:
+        - cookieAuth: []
+      description: |
+        Reexecuta sincronização de perfil e mídia para integração conectada.
+        Usado para retry após falha ou reconexão.
+      responses:
+        '202':
+          description: Sincronização iniciada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncStartedResponse'
+        '401':
+          description: Sessão expirada
+        '404':
+          description: Integração não encontrada
+        '409':
+          description: Sincronização já em andamento
+        '422':
+          description: Integração não está em estado sincronizável
+
+  /instagram/disconnect:
+    post:
+      operationId: disconnectInstagram
+      summary: Desconectar conta Instagram
+      tags: [Instagram]
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Desconectado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisconnectResponse'
+        '401':
+          description: Sessão expirada
+        '404':
+          description: Integração não encontrada
+
+  /cron/instagram/refresh-tokens:
+    post:
+      operationId: refreshInstagramTokens
+      summary: Renovar tokens long-lived próximos da expiração
+      tags: [Instagram Cron]
+      security:
+        - cronSecret: []
+      description: |
+        Endpoint interno protegido por `CRON_SECRET`.
+        Invocado por Vercel Cron diariamente.
+      responses:
+        '200':
+          description: Job de refresh concluído
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefreshJobResponse'
+        '401':
+          description: CRON_SECRET inválido
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sb-access-token
+    cronSecret:
+      type: apiKey
+      in: header
+      name: Authorization
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [error, code]
+      properties:
+        error:
+          type: string
+          description: Mensagem amigável em pt-BR
+        code:
+          type: string
+          enum:
+            - SESSION_EXPIRED
+            - ALREADY_CONNECTED
+            - ACCOUNT_LINKED_ELSEWHERE
+            - UNSUPPORTED_ACCOUNT_TYPE
+            - OAUTH_DENIED
+            - OAUTH_STATE_INVALID
+            - SYNC_IN_PROGRESS
+            - INTEGRATION_NOT_FOUND
+            - META_API_ERROR
+            - INTERNAL_ERROR
+
+    IntegrationResponse:
+      type: object
+      required: [connected]
+      properties:
+        connected:
+          type: boolean
+        integration:
+          nullable: true
+          $ref: '#/components/schemas/IntegrationPublic'
+
+    IntegrationPublic:
+      type: object
+      required:
+        - id
+        - username
+        - status
+        - syncStatus
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        displayName:
+          type: string
+          nullable: true
+        accountType:
+          type: string
+          enum: [BUSINESS, MEDIA_CREATOR]
+        profilePictureUrl:
+          type: string
+          format: uri
+          nullable: true
+        followersCount:
+          type: integer
+          nullable: true
+        followsCount:
+          type: integer
+          nullable: true
+        mediaCount:
+          type: integer
+          nullable: true
+        status:
+          type: string
+          enum: [CONNECTED, DISCONNECTED, REQUIRES_RECONNECTION]
+        syncStatus:
+          type: string
+          enum: [PENDING, IN_PROGRESS, COMPLETED, FAILED]
+        lastSyncedAt:
+          type: string
+          format: date-time
+          nullable: true
+        connectedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    SyncStartedResponse:
+      type: object
+      required: [jobId, syncStatus]
+      properties:
+        jobId:
+          type: string
+          format: uuid
+        syncStatus:
+          type: string
+          enum: [IN_PROGRESS]
+
+    DisconnectResponse:
+      type: object
+      required: [success, status]
+      properties:
+        success:
+          type: boolean
+        status:
+          type: string
+          enum: [DISCONNECTED]
+
+    TokenRefreshJobResponse:
+      type: object
+      required: [refreshed, failed, skipped]
+      properties:
+        refreshed:
+          type: integer
+        failed:
+          type: integer
+        skipped:
+          type: integer

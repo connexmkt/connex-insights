@@ -1,17 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { networks, currentUser, tenant } from "@/lib/connex-data";
-import { Check, Plus } from "lucide-react";
+import { InstagramConnectCard } from "@/components/instagram/instagram-connect-card";
+import { currentUser, tenant } from "@/lib/connex-data";
 
-export default function ConfiguracoesPage() {
+function InstagramSection(): React.JSX.Element {
+  const searchParams = useSearchParams();
+  const callbackStatus = searchParams.get("instagram");
+
+  return <InstagramConnectCard callbackStatus={callbackStatus} />;
+}
+
+export default function ConfiguracoesPage(): React.JSX.Element {
   const [notifEmail, setNotifEmail] = useState(true);
   const [notifWeekly, setNotifWeekly] = useState(true);
   const [notifAlerts, setNotifAlerts] = useState(false);
@@ -56,59 +63,17 @@ export default function ConfiguracoesPage() {
         </div>
       </Card>
 
-      <Card className="p-6">
-        <h2 className="text-base font-semibold text-foreground">
-          Redes conectadas
-        </h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Conecte as redes sociais que deseja monitorar no painel.
-        </p>
-        <Separator className="my-5" />
-        <div className="space-y-3">
-          {networks.map((network) => (
-            <div
-              key={network.id}
-              className="flex items-center justify-between rounded-lg border border-border px-4 py-3"
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className="flex size-9 items-center justify-center rounded-md text-sm font-semibold text-primary-foreground"
-                  style={{ backgroundColor: network.color }}
-                  aria-hidden
-                >
-                  {network.name.charAt(0)}
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-foreground">
-                    {network.name}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {network.connected ? network.handle : "Não conectado"}
-                  </p>
-                </div>
-              </div>
-              {network.connected ? (
-                <Badge
-                  variant="secondary"
-                  className="gap-1 bg-chart-2/15 text-chart-2"
-                >
-                  <Check className="size-3" />
-                  Conectado
-                </Badge>
-              ) : (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5 bg-transparent"
-                >
-                  <Plus className="size-3.5" />
-                  Conectar
-                </Button>
-              )}
-            </div>
-          ))}
-        </div>
-      </Card>
+      <Suspense
+        fallback={
+          <Card className="p-6">
+            <p className="text-sm text-muted-foreground">
+              Carregando integração Instagram…
+            </p>
+          </Card>
+        }
+      >
+        <InstagramSection />
+      </Suspense>
 
       <Card className="p-6">
         <h2 className="text-base font-semibold text-foreground">

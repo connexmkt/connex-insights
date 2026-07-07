@@ -257,19 +257,23 @@ export default function PrivacyPage() {
         </p>
         <ul>
           <li>
-            <code>instagram_basic</code> — acesso a informações básicas do perfil
+            <code>instagram_business_basic</code> — acesso a informações básicas do perfil
           </li>
           <li>
-            <code>instagram_manage_insights</code> — acesso às métricas de
+            <code>instagram_business_manage_insights</code> — acesso às métricas de
             alcance, impressões e engajamento
           </li>
           <li>
-            <code>pages_read_engagement</code> — leitura de dados de engajamento
-            de páginas vinculadas
+            <code>instagram_business_manage_messages</code> — gestão de mensagens
+            diretas (quando autorizado)
           </li>
           <li>
-            <code>pages_show_list</code> — listagem de páginas do Facebook
-            vinculadas à conta
+            <code>instagram_business_manage_comments</code> — gestão de comentários
+            (quando autorizado)
+          </li>
+          <li>
+            <code>instagram_business_content_publish</code> — publicação de conteúdo
+            (quando autorizado)
           </li>
         </ul>
         <p>
