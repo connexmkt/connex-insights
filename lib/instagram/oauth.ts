@@ -36,6 +36,112 @@ export function sanitizeOAuthCode(code: string): string {
   return code.replace(/#_$/, "").trim();
 }
 
+function coerceUserId(value: unknown): string | null {
+  if (typeof value === "string" && value.length > 0) {
+    return value;
+  }
+
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+
+  return null;
+}
+
+function parsePermissions(value: unknown): string | undefined {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    const scopes = value.filter((item): item is string => typeof item === "string");
+    return scopes.length > 0 ? scopes.join(",") : undefined;
+  }
+
+  return undefined;
+}
+
+function describeTokenResponseShape(json: unknown): string {
+  if (typeof json !== "object" || json === null) {
+    return `tipo=${typeof json}`;
+  }
+
+  const topLevelKeys = Object.keys(json);
+
+  if ("error_message" in json && typeof json.error_message === "string") {
+    return `erro_meta=${json.error_message}`;
+  }
+
+  if ("data" in json && Array.isArray(json.data)) {
+    const first = json.data[0];
+    if (typeof first === "object" && first !== null) {
+      return `data[0]_keys=${Object.keys(first).join(",")}`;
+    }
+
+    return "data=vazio";
+  }
+
+  return `keys=${topLevelKeys.join(",")}`;
+}
+
+function parseShortLivedTokenJson(
+  json: unknown,
+): ShortLivedTokenResponse | null {
+  if (typeof json !== "object" || json === null) {
+    return null;
+  }
+
+  if ("error_type" in json || "error_message" in json) {
+    return null;
+  }
+
+  if ("data" in json && Array.isArray(json.data) && json.data.length > 0) {
+    const first = json.data[0];
+
+    if (
+      typeof first === "object" &&
+      first !== null &&
+      "access_token" in first &&
+      typeof first.access_token === "string"
+    ) {
+      const userId = coerceUserId(
+        "user_id" in first ? first.user_id : "id" in first ? first.id : null,
+      );
+
+      if (userId) {
+        return {
+          access_token: first.access_token,
+          user_id: userId,
+          permissions:
+            "permissions" in first
+              ? parsePermissions(first.permissions)
+              : undefined,
+        };
+      }
+    }
+  }
+
+  if (
+    "access_token" in json &&
+    typeof json.access_token === "string"
+  ) {
+    const userId = coerceUserId(
+      "user_id" in json ? json.user_id : "id" in json ? json.id : null,
+    );
+
+    if (userId) {
+      return {
+        access_token: json.access_token,
+        user_id: userId,
+        permissions:
+          "permissions" in json ? parsePermissions(json.permissions) : undefined,
+      };
+    }
+  }
+
+  return null;
+}
+
 async function parseMetaError(response: Response): Promise<never> {
   let message = `Erro na API Meta (${response.status})`;
 
@@ -94,45 +200,22 @@ export async function exchangeCodeForShortLivedToken(
   if (
     typeof json === "object" &&
     json !== null &&
-    "data" in json &&
-    Array.isArray(json.data) &&
-    json.data.length > 0
+    "error_message" in json &&
+    typeof json.error_message === "string"
   ) {
-    const first = json.data[0];
-    if (
-      typeof first === "object" &&
-      first !== null &&
-      "access_token" in first &&
-      "user_id" in first &&
-      typeof first.access_token === "string" &&
-      typeof first.user_id === "string"
-    ) {
-      return {
-        access_token: first.access_token,
-        user_id: first.user_id,
-        permissions:
-          "permissions" in first && typeof first.permissions === "string"
-            ? first.permissions
-            : undefined,
-      };
-    }
+    throw new MetaApiError(json.error_message, response.status || 400);
   }
 
-  if (
-    typeof json === "object" &&
-    json !== null &&
-    "access_token" in json &&
-    "user_id" in json &&
-    typeof json.access_token === "string" &&
-    typeof json.user_id === "string"
-  ) {
-    return {
-      access_token: json.access_token,
-      user_id: json.user_id,
-    };
+  const parsed = parseShortLivedTokenJson(json);
+
+  if (parsed) {
+    return parsed;
   }
 
-  throw new MetaApiError("Resposta inesperada ao trocar code por token.", 500);
+  throw new MetaApiError(
+    `Resposta inesperada ao trocar code por token (${describeTokenResponseShape(json)}).`,
+    500,
+  );
 }
 
 export async function exchangeLongLivedToken(

@@ -49,6 +49,51 @@ describe("oauth", () => {
     expect(sanitizeOAuthCode("abc123#_")).toBe("abc123");
   });
 
+  it("exchanges code for short-lived token with numeric user_id in data envelope", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          data: [
+            {
+              access_token: "short-token",
+              user_id: 12345,
+              permissions: ["instagram_business_basic"],
+            },
+          ],
+        }),
+        { status: 200 },
+      ),
+    );
+
+    const { exchangeCodeForShortLivedToken } = await import(
+      "@/lib/instagram/oauth"
+    );
+    const result = await exchangeCodeForShortLivedToken("auth-code");
+
+    expect(result.access_token).toBe("short-token");
+    expect(result.user_id).toBe("12345");
+    expect(result.permissions).toBe("instagram_business_basic");
+  });
+
+  it("exchanges code for short-lived token with legacy flat response", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          access_token: "short-token",
+          user_id: 67890,
+        }),
+        { status: 200 },
+      ),
+    );
+
+    const { exchangeCodeForShortLivedToken } = await import(
+      "@/lib/instagram/oauth"
+    );
+    const result = await exchangeCodeForShortLivedToken("auth-code");
+
+    expect(result.user_id).toBe("67890");
+  });
+
   it("exchanges code for short-lived token", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(
