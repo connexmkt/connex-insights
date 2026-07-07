@@ -34,13 +34,19 @@ describe("oauth", () => {
 
     expect(url.origin).toBe("https://www.instagram.com");
     expect(url.pathname).toBe("/oauth/authorize");
+    expect(url.searchParams.get("force_reauth")).toBe("true");
     expect(url.searchParams.get("client_id")).toBe("test-app-id");
     expect(url.searchParams.get("redirect_uri")).toBe(
       "http://localhost:3000/api/auth/instagram/callback",
     );
     expect(url.searchParams.get("response_type")).toBe("code");
     expect(url.searchParams.get("state")).toBe("signed-state");
-    expect(url.searchParams.get("force_reauth")).toBe("true");
+    expect(url.searchParams.get("scope")).toContain("instagram_business_basic");
+  });
+
+  it("sanitizes OAuth code with Meta fragment suffix", async () => {
+    const { sanitizeOAuthCode } = await import("@/lib/instagram/oauth");
+    expect(sanitizeOAuthCode("abc123#_")).toBe("abc123");
   });
 
   it("exchanges code for short-lived token", async () => {

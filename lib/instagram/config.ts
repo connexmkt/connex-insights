@@ -44,8 +44,12 @@ export function getInstagramConfig(): InstagramConfig {
 
   if (!parsed.success) {
     const fields = parsed.error.issues.map((issue) => issue.path.join(".")).join(", ");
+    const instagramIdHint =
+      fields.includes("appId") || fields.includes("appSecret")
+        ? " Use o Instagram App ID e Instagram App Secret de Instagram → API setup with Instagram login → Business login settings (não o App ID/Secret geral do Facebook)."
+        : "";
     throw new Error(
-      `Configuração Instagram inválida ou ausente: ${fields}. Verifique variáveis de ambiente.`,
+      `Configuração Instagram inválida ou ausente: ${fields}. Verifique variáveis de ambiente.${instagramIdHint}`,
     );
   }
 

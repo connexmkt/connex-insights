@@ -10,18 +10,30 @@ const TOKEN_URL = "https://api.instagram.com/oauth/access_token";
 const GRAPH_TOKEN_URL = "https://graph.instagram.com/access_token";
 const REFRESH_TOKEN_URL = "https://graph.instagram.com/refresh_access_token";
 
+/**
+ * Monta a URL de autorização do Business Login for Instagram.
+ * Deve usar o **Instagram App ID** (não o App ID geral do Facebook).
+ * Dashboard: Instagram → API setup with Instagram login → Business login settings.
+ *
+ * @see https://developers.facebook.com/documentation/instagram-platform/instagram-api-with-instagram-login/business-login-for-instagram
+ */
 export function buildAuthorizationUrl(state: string): string {
   const config = getInstagramConfig();
   const params = new URLSearchParams({
+    force_reauth: "true",
     client_id: config.appId,
     redirect_uri: config.redirectUri,
     response_type: "code",
     scope: config.oauthScopes.join(","),
-    force_reauth: "true",
     state,
   });
 
   return `${AUTHORIZE_URL}?${params.toString()}`;
+}
+
+/** Meta pode anexar `#_` ao code no redirect — não faz parte do valor. */
+export function sanitizeOAuthCode(code: string): string {
+  return code.replace(/#_$/, "").trim();
 }
 
 async function parseMetaError(response: Response): Promise<never> {
@@ -58,18 +70,19 @@ export async function exchangeCodeForShortLivedToken(
   code: string,
 ): Promise<ShortLivedTokenResponse> {
   const config = getInstagramConfig();
-  const body = new URLSearchParams({
-    client_id: config.appId,
-    client_secret: config.appSecret,
-    grant_type: "authorization_code",
-    redirect_uri: config.redirectUri,
-    code,
-  });
+  const sanitizedCode = sanitizeOAuthCode(code);
+
+  // Meta documenta POST com multipart/form-data (-F); usar FormData garante compatibilidade.
+  const body = new FormData();
+  body.append("client_id", config.appId);
+  body.append("client_secret", config.appSecret);
+  body.append("grant_type", "authorization_code");
+  body.append("redirect_uri", config.redirectUri);
+  body.append("code", sanitizedCode);
 
   const response = await fetch(TOKEN_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: body.toString(),
+    body,
   });
 
   if (!response.ok) {

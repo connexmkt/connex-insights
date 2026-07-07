@@ -31,8 +31,30 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
    - OAuth redirect URIs:
      - `http://localhost:3000/api/auth/instagram/callback` (dev)
      - `https://insights.connexmkt.com.br/api/auth/instagram/callback` (prod)
-2. Copiar **Instagram App ID** e **Instagram App Secret**.
+2. Copiar **Instagram App ID** e **Instagram App Secret** (campos específicos desta tela — **não** o App ID/Secret geral do Facebook).
 3. Verificar escopos habilitados no embed URL.
+
+### Erro "Invalid platform app"
+
+Significa que o `client_id` na URL não é um **Instagram App ID** válido. Causas comuns:
+
+1. `INSTAGRAM_APP_ID` na Vercel aponta para o App ID geral do Facebook em vez do Instagram App ID.
+2. Produto **Instagram** não adicionado ou Business Login não configurado no App Dashboard.
+3. `INSTAGRAM_REDIRECT_URI` não coincide exatamente com um URI cadastrado em OAuth redirect URIs.
+
+A URL gerada pelo Connex segue o mesmo formato do embed URL da Meta:
+
+```text
+https://www.instagram.com/oauth/authorize
+  ?force_reauth=true
+  &client_id={INSTAGRAM_APP_ID}
+  &redirect_uri={INSTAGRAM_REDIRECT_URI}
+  &response_type=code
+  &scope={INSTAGRAM_OAUTH_SCOPES}
+  &state={csrf-token}
+```
+
+O parâmetro `state` é adicional (proteção CSRF) e não causa "Invalid platform app".
 
 ## Setup Local
 
