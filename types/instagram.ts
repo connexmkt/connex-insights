@@ -108,16 +108,30 @@ export class MetaApiError extends Error {
   }
 }
 
+function normalizeAccountTypeKey(accountType: string): string {
+  return accountType.trim().toUpperCase().replace(/[\s-]+/g, "_");
+}
+
+/**
+ * Mapeia account_type da Graph API para enum Prisma.
+ * A Meta pode retornar Business, BUSINESS, Media_Creator, MEDIA_CREATOR, CREATOR, etc.
+ */
 export function mapGraphAccountType(
   accountType: string,
 ): InstagramAccountType | null {
-  switch (accountType) {
-    case "Business":
+  const normalized = normalizeAccountTypeKey(accountType);
+
+  switch (normalized) {
+    case "BUSINESS":
       return InstagramAccountType.BUSINESS;
-    case "Media_Creator":
+    case "MEDIA_CREATOR":
+    case "CREATOR":
       return InstagramAccountType.MEDIA_CREATOR;
-    default:
+    case "PERSONAL":
       return null;
+    default: {
+      return null;
+    }
   }
 }
 

@@ -86,7 +86,7 @@ export async function persistConnection(
 
   if (!accountType) {
     throw new InstagramServiceError(
-      "Apenas contas Instagram Business ou Creator são suportadas.",
+      `Apenas contas Instagram Business ou Creator são suportadas (account_type recebido: "${input.profile.account_type}").`,
       "UNSUPPORTED_ACCOUNT_TYPE",
       422,
     );
