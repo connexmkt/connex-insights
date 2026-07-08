@@ -30,19 +30,36 @@ function parseEndTime(endTime: string | undefined): Date | null {
   );
 }
 
+function normalizeReferenceDate(referenceDate?: Date): Date | null {
+  if (!referenceDate) {
+    return null;
+  }
+
+  return new Date(
+    Date.UTC(
+      referenceDate.getUTCFullYear(),
+      referenceDate.getUTCMonth(),
+      referenceDate.getUTCDate(),
+    ),
+  );
+}
+
 export function parseInsightsResponse(
   response: InstagramGraphInsightsResponse,
   options: {
     scope?: InstagramMetricScope;
     entityId?: string;
+    referenceDate?: Date;
   } = {},
 ): ParsedSnapshotRow[] {
   const rows: ParsedSnapshotRow[] = [];
   const defaultEntityId = options.entityId ?? "";
   const defaultScope = options.scope ?? InstagramMetricScope.ACCOUNT;
+  const fallbackDate = normalizeReferenceDate(options.referenceDate);
 
   for (const metric of response.data) {
     const scope = options.scope ?? scopeForMetric(metric.name);
+    const metricRowsStart = rows.length;
 
     if (metric.values && metric.values.length > 0) {
       for (const point of metric.values) {
@@ -68,18 +85,72 @@ export function parseInsightsResponse(
 
         for (const result of breakdown.results) {
           const segmentValue = result.dimension_values.join("|");
+          const metricDate =
+            parseEndTime(result.end_time) ?? fallbackDate;
+
           rows.push({
             scope,
             entityId: defaultEntityId,
             metricName: metric.name,
             period: metric.period,
-            metricDate: null,
+            metricDate,
             breakdownKey: toBreakdownKey(dimensionKeys, segmentValue),
             value: new Prisma.Decimal(result.value),
             valueJson: {
               dimensionKeys: breakdown.dimension_keys,
               dimensionValues: result.dimension_values,
             },
+          });
+        }
+      }
+    }
+
+    const hasAggregateRow = rows
+      .slice(metricRowsStart)
+      .some((row) => row.breakdownKey === "");
+
+    if (
+      metric.total_value?.value !== undefined &&
+      !hasAggregateRow
+    ) {
+      rows.push({
+        scope,
+        entityId: defaultEntityId,
+        metricName: metric.name,
+        period: metric.period,
+        metricDate: fallbackDate,
+        breakdownKey: "",
+        value: new Prisma.Decimal(metric.total_value.value),
+        valueJson: null,
+      });
+      continue;
+    }
+
+    if (!hasAggregateRow) {
+      const totalsByDate = new Map<string, number>();
+
+      for (const row of rows.slice(metricRowsStart)) {
+        if (!row.metricDate || row.value === null) {
+          continue;
+        }
+        const dateKey = row.metricDate.toISOString();
+        totalsByDate.set(
+          dateKey,
+          (totalsByDate.get(dateKey) ?? 0) + Number(row.value),
+        );
+      }
+
+      if (totalsByDate.size > 0) {
+        for (const [dateKey, total] of totalsByDate) {
+          rows.push({
+            scope,
+            entityId: defaultEntityId,
+            metricName: metric.name,
+            period: metric.period,
+            metricDate: new Date(dateKey),
+            breakdownKey: "",
+            value: new Prisma.Decimal(total),
+            valueJson: null,
           });
         }
       }

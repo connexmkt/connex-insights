@@ -190,6 +190,8 @@ export async function getAccountInsights(
   options: {
     metric: string;
     period: string;
+    metricType?: "time_series" | "total_value";
+    breakdown?: string;
     since?: number;
     until?: number;
   },
@@ -201,6 +203,12 @@ export async function getAccountInsights(
     access_token: accessToken,
   });
 
+  if (options.metricType) {
+    params.set("metric_type", options.metricType);
+  }
+  if (options.breakdown) {
+    params.set("breakdown", options.breakdown);
+  }
   if (options.since !== undefined) {
     params.set("since", String(options.since));
   }

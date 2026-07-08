@@ -73,11 +73,13 @@ export interface InstagramGraphInsightMetric {
   period: string;
   values?: InstagramGraphInsightValue[];
   total_value?: {
+    value?: number;
     breakdowns?: Array<{
       dimension_keys: string[];
       results: Array<{
         dimension_values: string[];
         value: number;
+        end_time?: string;
       }>;
     }>;
   };

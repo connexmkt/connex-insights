@@ -7,7 +7,11 @@ import {
   getComparisonRange,
   parseAnalyticsPeriod,
 } from "@/lib/instagram/analytics/period";
-import { getMetricLabel } from "@/lib/instagram/insights/metrics/registry";
+import {
+  getMetricAggregation,
+  getMetricLabel,
+  OVERVIEW_KPI_METRICS,
+} from "@/lib/instagram/insights/metrics/registry";
 import { getDashboardIntegration } from "@/lib/instagram/integration-service";
 import type {
   AnalyticsPeriodPreset,
@@ -16,13 +20,7 @@ import type {
   SyncStatusResponse,
 } from "@/types/analytics";
 
-const KPI_METRICS = [
-  "follower_count",
-  "reach",
-  "accounts_engaged",
-  "profile_views",
-  "total_interactions",
-];
+const KPI_METRICS = [...OVERVIEW_KPI_METRICS];
 
 function formatFreshnessLabel(lastSyncedAt: Date | null): string {
   if (!lastSyncedAt) {
@@ -61,7 +59,7 @@ export function buildSyncStatus(integration: {
   };
 }
 
-async function sumMetricInRange(
+async function aggregateMetricInRange(
   tenantId: string,
   integrationId: string,
   metricName: string,
@@ -87,9 +85,11 @@ async function sumMetricInRange(
     return null;
   }
 
-  if (metricName === "follower_count") {
+  const aggregation = getMetricAggregation(metricName);
+
+  if (aggregation === "latest") {
     const latest = rows[0]?.value;
-    return latest ? Number(latest) : null;
+    return latest !== null && latest !== undefined ? Number(latest) : null;
   }
 
   return rows.reduce((acc, row) => acc + Number(row.value ?? 0), 0);
@@ -108,7 +108,7 @@ async function buildKpis(
   const kpis: MetricValue[] = [];
 
   for (const metricName of KPI_METRICS) {
-    let current = await sumMetricInRange(
+    let current = await aggregateMetricInRange(
       tenantId,
       integrationId,
       metricName,
@@ -126,7 +126,7 @@ async function buildKpis(
 
     let previous: number | null = null;
     if (compareRange) {
-      previous = await sumMetricInRange(
+      previous = await aggregateMetricInRange(
         tenantId,
         integrationId,
         metricName,

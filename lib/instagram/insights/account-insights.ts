@@ -24,6 +24,7 @@ export async function syncAccountInsights(
 ): Promise<number> {
   const { since, until } = getInsightsWindow(isInitial);
   const definitions = getAccountMetricDefinitions();
+  const referenceDate = new Date(until * 1000);
   let totalImported = 0;
 
   for (const definition of definitions) {
@@ -34,6 +35,8 @@ export async function syncAccountInsights(
         {
           metric: definition.name,
           period: definition.period,
+          metricType: definition.metricType,
+          breakdown: definition.breakdown,
           since,
           until,
         },
@@ -42,6 +45,7 @@ export async function syncAccountInsights(
 
       const rows = parseInsightsResponse(response, {
         scope: InstagramMetricScope.ACCOUNT,
+        referenceDate,
       });
       totalImported += await insertMetricSnapshots(
         tenantId,

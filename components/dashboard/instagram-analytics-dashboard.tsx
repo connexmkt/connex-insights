@@ -53,15 +53,25 @@ const KPI_ICONS: Record<string, typeof Users> = {
   follower_count: Users,
   reach: Eye,
   accounts_engaged: Heart,
-  profile_views: Eye,
+  profile_links_taps: Eye,
   total_interactions: MessageCircle,
+  likes: Heart,
+  comments: MessageCircle,
+  shares: Share2,
+  saves: Heart,
+  views: Eye,
 };
 
 const INSIGHT_METRICS = [
   "reach",
   "accounts_engaged",
-  "profile_views",
+  "profile_links_taps",
   "total_interactions",
+  "likes",
+  "comments",
+  "shares",
+  "saves",
+  "views",
 ];
 
 function needsMetricsBackfill(overview: OverviewResponse | null): boolean {
@@ -160,8 +170,8 @@ function ChartTooltip({
 function LoadingSkeleton(): React.JSX.Element {
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
-        {Array.from({ length: 5 }).map((_, index) => (
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+        {Array.from({ length: 10 }).map((_, index) => (
           <Card key={index} className="h-28 animate-pulse bg-muted/40" />
         ))}
       </div>
@@ -338,7 +348,7 @@ export function InstagramAnalyticsDashboard({
         />
       ) : null}
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
         {overview?.kpis.map((metric, index) => (
           <MetricCard key={metric.name} metric={metric} index={index} />
         ))}
