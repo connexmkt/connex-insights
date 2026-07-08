@@ -17,13 +17,14 @@ export const GET = requireAuth(async (_request, ctx) => {
   const alreadyConnected = await hasConnectedIntegration(ctx.tenantId);
 
   if (alreadyConnected) {
-    return NextResponse.json(
-      {
-        error: "Este workspace já possui uma conta Instagram conectada.",
-        code: "ALREADY_CONNECTED",
-      },
-      { status: 409 },
+    const config = getInstagramConfig();
+    const url = new URL("/dashboard/configuracoes", config.appUrl);
+    url.searchParams.set("instagram", "already_connected");
+    url.searchParams.set(
+      "instagram_detail",
+      "Este workspace já possui uma conta Instagram conectada.",
     );
+    return NextResponse.redirect(url);
   }
 
   const { state, cookieValue } = createOAuthState(ctx.tenantId, ctx.userId);

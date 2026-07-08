@@ -186,9 +186,8 @@ export function InstagramConnectCard({
     integration !== null && integration.status === "CONNECTED";
   const requiresReconnection =
     integration?.status === "REQUIRES_RECONNECTION";
-  const isDisconnected = integration?.status === "DISCONNECTED";
   const showHistoricalProfile =
-    integration !== null && (isConnected || isDisconnected || requiresReconnection);
+    integration !== null && (isConnected || requiresReconnection);
 
   return (
     <Card className="p-6">
@@ -266,7 +265,6 @@ export function InstagramConnectCard({
             {requiresReconnection ? (
               <InstagramConnectButton reconnect />
             ) : null}
-            {isDisconnected ? <InstagramConnectButton /> : null}
             {integration.syncStatus === "FAILED" && isConnected ? (
               <Button
                 variant="outline"

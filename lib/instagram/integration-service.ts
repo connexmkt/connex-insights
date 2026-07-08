@@ -9,6 +9,7 @@ import type { IntegrationPublic } from "@/types/instagram";
 import { InstagramServiceError } from "@/types/instagram";
 import { mapGraphAccountType } from "@/types/instagram";
 import type { InstagramGraphProfile } from "@/types/instagram";
+import { mapIntegrationUniqueViolation } from "@/lib/instagram/integration-unique-violation";
 
 export interface PersistConnectionInput {
   instagramUserId: string;
@@ -62,7 +63,10 @@ export async function getPublicIntegration(
     where: { tenantId },
   });
 
-  if (!integration) {
+  if (
+    !integration ||
+    integration.status === InstagramIntegrationStatus.DISCONNECTED
+  ) {
     return null;
   }
 
@@ -125,11 +129,24 @@ export async function persistConnection(
     );
   }
 
+  const staleDisconnectedElsewhere =
+    existingByProfessional &&
+    existingByProfessional.tenantId !== ctx.tenantId &&
+    existingByProfessional.status === InstagramIntegrationStatus.DISCONNECTED
+      ? existingByProfessional.id
+      : null;
+
   const encryptedToken = encryptToken(input.accessToken);
   const now = new Date();
 
   try {
     const integration = await prisma.$transaction(async (tx) => {
+      if (staleDisconnectedElsewhere) {
+        await tx.instagramIntegration.delete({
+          where: { id: staleDisconnectedElsewhere },
+        });
+      }
+
       const integrationData = {
         instagramUserId: input.instagramUserId,
         instagramProfessionalId: input.profile.user_id,
@@ -185,10 +202,9 @@ export async function persistConnection(
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === "P2002"
     ) {
-      const target = error.meta?.target;
-      const targetFields = Array.isArray(target) ? target : [];
+      const violation = mapIntegrationUniqueViolation(error.meta?.target);
 
-      if (targetFields.includes("instagram_professional_id")) {
+      if (violation === "ACCOUNT_LINKED_ELSEWHERE") {
         throw new InstagramServiceError(
           "Esta conta Instagram já está vinculada a outro workspace.",
           "ACCOUNT_LINKED_ELSEWHERE",
