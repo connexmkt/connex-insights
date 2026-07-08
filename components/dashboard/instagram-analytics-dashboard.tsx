@@ -36,6 +36,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DateRangePicker } from "@/components/dashboard/date-range-picker";
+import { MetricsBackfillBanner } from "@/components/dashboard/metrics-backfill-banner";
 import { SyncStatusBanner } from "@/components/dashboard/sync-status-banner";
 import { cn } from "@/lib/utils";
 import type {
@@ -55,6 +56,24 @@ const KPI_ICONS: Record<string, typeof Users> = {
   profile_views: Eye,
   total_interactions: MessageCircle,
 };
+
+const INSIGHT_METRICS = [
+  "reach",
+  "accounts_engaged",
+  "profile_views",
+  "total_interactions",
+];
+
+function needsMetricsBackfill(overview: OverviewResponse | null): boolean {
+  if (!overview || overview.sync.syncStatus === "IN_PROGRESS") {
+    return false;
+  }
+
+  return INSIGHT_METRICS.every((metricName) => {
+    const metric = overview.kpis.find((item) => item.name === metricName);
+    return metric?.status === "unavailable";
+  });
+}
 
 function formatNumber(value: number | null | undefined): string {
   if (value === null || value === undefined) {
@@ -167,6 +186,7 @@ export function InstagramAnalyticsDashboard({
     useState<TimeseriesResponse | null>(null);
   const [media, setMedia] = useState<MediaListResponse | null>(null);
   const [audience, setAudience] = useState<AudienceResponse | null>(null);
+  const [syncingMetrics, setSyncingMetrics] = useState(false);
 
   const loadData = useCallback(async (): Promise<void> => {
     setLoading(true);
@@ -217,6 +237,45 @@ export function InstagramAnalyticsDashboard({
 
     setLoading(false);
   }, [compare, period]);
+
+  const handleImportMetrics = useCallback(async (): Promise<void> => {
+    setSyncingMetrics(true);
+    await fetch("/api/instagram/sync", {
+      method: "POST",
+      cache: "no-store",
+      credentials: "same-origin",
+    });
+    await loadData();
+    setSyncingMetrics(false);
+  }, [loadData]);
+
+  const metricsBackfillNeeded = needsMetricsBackfill(overview);
+
+  useEffect(() => {
+    if (!metricsBackfillNeeded) {
+      return;
+    }
+
+    const storageKey = `instagram-metrics-backfill:${integration.id}`;
+    if (sessionStorage.getItem(storageKey) === "1") {
+      return;
+    }
+
+    sessionStorage.setItem(storageKey, "1");
+    void handleImportMetrics();
+  }, [handleImportMetrics, integration.id, metricsBackfillNeeded]);
+
+  useEffect(() => {
+    if (overview?.sync.syncStatus !== "IN_PROGRESS") {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      void loadData();
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [loadData, overview?.sync.syncStatus]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -271,6 +330,13 @@ export function InstagramAnalyticsDashboard({
       </div>
 
       {overview ? <SyncStatusBanner sync={overview.sync} /> : null}
+
+      {metricsBackfillNeeded ? (
+        <MetricsBackfillBanner
+          onSync={() => void handleImportMetrics()}
+          syncing={syncingMetrics || overview?.sync.syncStatus === "IN_PROGRESS"}
+        />
+      ) : null}
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
         {overview?.kpis.map((metric, index) => (

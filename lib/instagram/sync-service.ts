@@ -12,6 +12,18 @@ import {
 
 export const SYNC_TIMEOUT_MS = 25_000;
 
+async function resolveSyncJobType(
+  integrationId: string,
+): Promise<InstagramSyncJobType> {
+  const snapshotCount = await prisma.instagramMetricSnapshot.count({
+    where: { integrationId },
+  });
+
+  return snapshotCount === 0
+    ? InstagramSyncJobType.INITIAL
+    : InstagramSyncJobType.INCREMENTAL;
+}
+
 export async function runInitialSync(integrationId: string): Promise<string> {
   return runSynchronization(integrationId, {
     jobType: InstagramSyncJobType.INITIAL,
@@ -47,8 +59,10 @@ export async function runSyncForTenant(
     throw new Error("SYNC_IN_PROGRESS");
   }
 
+  const jobType = await resolveSyncJobType(integration.id);
+
   const jobId = await runSynchronization(integration.id, {
-    jobType: InstagramSyncJobType.INCREMENTAL,
+    jobType,
   });
 
   return { jobId };
@@ -72,8 +86,9 @@ export async function runDailySyncForAllTenants(): Promise<{
 
   for (const integration of integrations) {
     try {
+      const jobType = await resolveSyncJobType(integration.id);
       const jobId = await runSynchronization(integration.id, {
-        jobType: InstagramSyncJobType.INCREMENTAL,
+        jobType,
       });
 
       const job = await prisma.instagramSyncJob.findUnique({

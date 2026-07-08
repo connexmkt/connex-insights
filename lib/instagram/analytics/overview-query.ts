@@ -100,6 +100,7 @@ async function buildKpis(
   integrationId: string,
   period: AnalyticsPeriodPreset,
   compare: boolean,
+  followersCountFallback: number | null,
 ): Promise<MetricValue[]> {
   const range = parseAnalyticsPeriod(period);
   const compareRange = compare ? getComparisonRange(range) : null;
@@ -107,13 +108,21 @@ async function buildKpis(
   const kpis: MetricValue[] = [];
 
   for (const metricName of KPI_METRICS) {
-    const current = await sumMetricInRange(
+    let current = await sumMetricInRange(
       tenantId,
       integrationId,
       metricName,
       range.since,
       range.until,
     );
+
+    if (
+      metricName === "follower_count" &&
+      current === null &&
+      followersCountFallback !== null
+    ) {
+      current = followersCountFallback;
+    }
 
     let previous: number | null = null;
     if (compareRange) {
@@ -158,7 +167,13 @@ async function fetchOverview(
   }
 
   const range = parseAnalyticsPeriod(period);
-  const kpis = await buildKpis(tenantId, integration.id, period, compare);
+  const kpis = await buildKpis(
+    tenantId,
+    integration.id,
+    period,
+    compare,
+    integration.followersCount,
+  );
 
   return {
     period: {
@@ -182,6 +197,14 @@ export async function getOverviewAnalytics(
   period: AnalyticsPeriodPreset,
   compare = false,
 ): Promise<OverviewResponse | null> {
+  const snapshotCount = await prisma.instagramMetricSnapshot.count({
+    where: { tenantId },
+  });
+
+  if (snapshotCount === 0) {
+    return fetchOverview(tenantId, period, compare);
+  }
+
   return unstable_cache(
     async () => fetchOverview(tenantId, period, compare),
     [`overview`, tenantId, period, String(compare)],
