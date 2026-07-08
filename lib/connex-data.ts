@@ -45,34 +45,6 @@ export const networks: SocialNetwork[] = [
     color: "#E1306C",
     connected: true,
   },
-  {
-    id: "tiktok",
-    name: "TikTok",
-    handle: "@auroracosmeticos",
-    color: "#161622",
-    connected: false,
-  },
-  {
-    id: "facebook",
-    name: "Facebook",
-    handle: "/auroracosmeticos",
-    color: "#1877F2",
-    connected: false,
-  },
-  {
-    id: "linkedin",
-    name: "LinkedIn",
-    handle: "/aurora-cosmeticos",
-    color: "#0A66C2",
-    connected: false,
-  },
-  {
-    id: "youtube",
-    name: "YouTube",
-    handle: "@auroracosmeticos",
-    color: "#FF0000",
-    connected: false,
-  },
 ];
 
 export type MetricCard = {

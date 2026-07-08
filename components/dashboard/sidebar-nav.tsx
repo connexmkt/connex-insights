@@ -30,10 +30,6 @@ type NavItem = {
 const mainNav: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Instagram", href: "/dashboard", icon: Camera },
-  { label: "TikTok", icon: Music, soon: true },
-  { label: "Facebook", icon: Users, soon: true },
-  { label: "LinkedIn", icon: Briefcase, soon: true },
-  { label: "YouTube", icon: Play, soon: true },
 ];
 
 const workNav: NavItem[] = [
