@@ -8,16 +8,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { useSession } from "@/components/auth/session-provider";
 import { InstagramConnectCard } from "@/components/instagram/instagram-connect-card";
-import { currentUser, tenant } from "@/lib/connex-data";
+import { formatUserRole } from "@/lib/auth/format-user-role";
 
 function InstagramSection(): React.JSX.Element {
+  const session = useSession();
   const searchParams = useSearchParams();
   const callbackStatus = searchParams.get("instagram");
   const callbackDetail = searchParams.get("instagram_detail");
 
   return (
     <InstagramConnectCard
+      key={session.tenantId}
       callbackStatus={callbackStatus}
       callbackDetail={callbackDetail}
     />
@@ -25,6 +28,7 @@ function InstagramSection(): React.JSX.Element {
 }
 
 export default function ConfiguracoesPage(): React.JSX.Element {
+  const session = useSession();
   const [notifEmail, setNotifEmail] = useState(true);
   const [notifWeekly, setNotifWeekly] = useState(true);
   const [notifAlerts, setNotifAlerts] = useState(false);
@@ -43,29 +47,38 @@ export default function ConfiguracoesPage(): React.JSX.Element {
       <Card className="p-6">
         <h2 className="text-base font-semibold text-foreground">Perfil</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Informações da sua conta na {tenant.name}.
+          Informações da sua conta na {session.tenant.name}.
         </p>
         <Separator className="my-5" />
         <div className="grid gap-5 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="name">Nome</Label>
-            <Input id="name" defaultValue={currentUser.name} />
+            <Input id="name" defaultValue={session.displayName} readOnly />
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">E-mail</Label>
-            <Input id="email" type="email" defaultValue={currentUser.email} />
+            <Input
+              id="email"
+              type="email"
+              defaultValue={session.email}
+              readOnly
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="role">Cargo</Label>
-            <Input id="role" defaultValue={currentUser.role} />
+            <Input
+              id="role"
+              defaultValue={formatUserRole(session.role)}
+              readOnly
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="workspace">Workspace</Label>
-            <Input id="workspace" defaultValue={tenant.name} />
+            <Input id="workspace" defaultValue={session.tenant.name} readOnly />
           </div>
         </div>
         <div className="mt-5 flex justify-end">
-          <Button>Salvar alterações</Button>
+          <Button disabled>Salvar alterações</Button>
         </div>
       </Card>
 

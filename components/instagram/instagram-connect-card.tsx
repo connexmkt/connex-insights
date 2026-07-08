@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { AlertCircle, Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +9,8 @@ import { Separator } from "@/components/ui/separator";
 import { InstagramConnectButton } from "@/components/instagram/instagram-connect-button";
 import { InstagramProfileSummary } from "@/components/instagram/instagram-profile-summary";
 import { InstagramSyncStatus } from "@/components/instagram/instagram-sync-status";
-import type { IntegrationPublic, IntegrationResponse } from "@/types/instagram";
+import { useInstagramIntegration } from "@/hooks/use-instagram-integration";
+import type { IntegrationPublic } from "@/types/instagram";
 
 interface InstagramConnectCardProps {
   callbackStatus?: string | null;
@@ -126,29 +127,10 @@ export function InstagramConnectCard({
   callbackStatus,
   callbackDetail,
 }: InstagramConnectCardProps): React.JSX.Element {
-  const [integration, setIntegration] = useState<IntegrationPublic | null>(
-    null,
-  );
-  const [loading, setLoading] = useState(true);
+  const { integration, loading, refetch } = useInstagramIntegration();
   const [disconnecting, setDisconnecting] = useState(false);
   const [showDisconnectConfirm, setShowDisconnectConfirm] = useState(false);
   const [retrying, setRetrying] = useState(false);
-
-  const fetchIntegration = useCallback(async (): Promise<void> => {
-    const response = await fetch("/api/instagram/integration");
-    if (!response.ok) {
-      setLoading(false);
-      return;
-    }
-
-    const data = (await response.json()) as IntegrationResponse;
-    setIntegration(data.integration);
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    void fetchIntegration();
-  }, [fetchIntegration]);
 
   useEffect(() => {
     if (!integration || integration.syncStatus !== "IN_PROGRESS") {
@@ -156,28 +138,36 @@ export function InstagramConnectCard({
     }
 
     const interval = setInterval(() => {
-      void fetchIntegration();
+      void refetch();
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [integration, fetchIntegration]);
+  }, [integration, refetch]);
 
   async function handleDisconnect(): Promise<void> {
     setDisconnecting(true);
-    const response = await fetch("/api/instagram/disconnect", { method: "POST" });
+    const response = await fetch("/api/instagram/disconnect", {
+      method: "POST",
+      cache: "no-store",
+      credentials: "same-origin",
+    });
     setDisconnecting(false);
     setShowDisconnectConfirm(false);
 
     if (response.ok) {
-      await fetchIntegration();
+      await refetch();
     }
   }
 
   async function handleRetrySync(): Promise<void> {
     setRetrying(true);
-    await fetch("/api/instagram/sync", { method: "POST" });
+    await fetch("/api/instagram/sync", {
+      method: "POST",
+      cache: "no-store",
+      credentials: "same-origin",
+    });
     setRetrying(false);
-    await fetchIntegration();
+    await refetch();
   }
 
   const callbackMessage = callbackStatus

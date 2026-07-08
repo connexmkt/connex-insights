@@ -17,11 +17,13 @@ export type Tenant = {
   handle: string;
 };
 
+/** @deprecated Dados de demonstração — não usar em páginas autenticadas. */
 export const tenant: Tenant = {
   name: "Aurora Cosméticos",
   handle: "@auroracosmeticos",
 };
 
+/** @deprecated Dados de demonstração — não usar em páginas autenticadas. */
 export const currentUser = {
   name: "Marina Velloso",
   role: "Gerente de Marketing",
@@ -37,13 +39,14 @@ export type SocialNetwork = {
   connected: boolean;
 };
 
+/** @deprecated Dados de demonstração — não usar em páginas autenticadas. */
 export const networks: SocialNetwork[] = [
   {
     id: "instagram",
     name: "Instagram",
     handle: "@auroracosmeticos",
     color: "#E1306C",
-    connected: true,
+    connected: false,
   },
 ];
 

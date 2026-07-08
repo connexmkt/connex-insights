@@ -1,12 +1,16 @@
-import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth/require-auth";
+import {
+  PRIVATE_DYNAMIC,
+  privateJsonResponse,
+} from "@/lib/api/private-json-response";
 import {
   InstagramIntegrationStatus,
   InstagramSyncStatus,
 } from "@/lib/generated/prisma";
 import { prisma } from "@/lib/db/prisma";
 import { runSyncForTenant } from "@/lib/instagram/sync-service";
-import { InstagramServiceError } from "@/types/instagram";
+
+export const dynamic = PRIVATE_DYNAMIC.dynamic;
 
 export const POST = requireAuth(async (_request, ctx) => {
   const integration = await prisma.instagramIntegration.findUnique({
@@ -14,7 +18,7 @@ export const POST = requireAuth(async (_request, ctx) => {
   });
 
   if (!integration) {
-    return NextResponse.json(
+    return privateJsonResponse(
       {
         error: "Integração Instagram não encontrada.",
         code: "INTEGRATION_NOT_FOUND",
@@ -24,7 +28,7 @@ export const POST = requireAuth(async (_request, ctx) => {
   }
 
   if (integration.status !== InstagramIntegrationStatus.CONNECTED) {
-    return NextResponse.json(
+    return privateJsonResponse(
       {
         error: "Integração não está em estado sincronizável.",
         code: "INTEGRATION_NOT_FOUND",
@@ -34,7 +38,7 @@ export const POST = requireAuth(async (_request, ctx) => {
   }
 
   if (integration.syncStatus === InstagramSyncStatus.IN_PROGRESS) {
-    return NextResponse.json(
+    return privateJsonResponse(
       {
         error: "Sincronização já em andamento.",
         code: "SYNC_IN_PROGRESS",
@@ -46,7 +50,7 @@ export const POST = requireAuth(async (_request, ctx) => {
   try {
     const { jobId } = await runSyncForTenant(ctx.tenantId);
 
-    return NextResponse.json(
+    return privateJsonResponse(
       {
         jobId,
         syncStatus: "IN_PROGRESS" as const,
@@ -54,7 +58,7 @@ export const POST = requireAuth(async (_request, ctx) => {
       { status: 202 },
     );
   } catch {
-    return NextResponse.json(
+    return privateJsonResponse(
       {
         error: "Não foi possível iniciar a sincronização.",
         code: "INTERNAL_ERROR",

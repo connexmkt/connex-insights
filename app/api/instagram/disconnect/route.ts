@@ -1,13 +1,18 @@
-import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth/require-auth";
+import {
+  PRIVATE_DYNAMIC,
+  privateJsonResponse,
+} from "@/lib/api/private-json-response";
 import { disconnect } from "@/lib/instagram/integration-service";
 import { InstagramServiceError } from "@/types/instagram";
+
+export const dynamic = PRIVATE_DYNAMIC.dynamic;
 
 export const POST = requireAuth(async (_request, ctx) => {
   try {
     await disconnect(ctx);
 
-    return NextResponse.json({
+    return privateJsonResponse({
       success: true,
       status: "DISCONNECTED" as const,
     });
@@ -16,7 +21,7 @@ export const POST = requireAuth(async (_request, ctx) => {
       error instanceof InstagramServiceError &&
       error.code === "INTEGRATION_NOT_FOUND"
     ) {
-      return NextResponse.json(
+      return privateJsonResponse(
         {
           error: error.message,
           code: error.code,
@@ -25,7 +30,7 @@ export const POST = requireAuth(async (_request, ctx) => {
       );
     }
 
-    return NextResponse.json(
+    return privateJsonResponse(
       {
         error: "Não foi possível desconectar a integração.",
         code: "INTERNAL_ERROR",
