@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth/require-auth";
-import { PRIVATE_DYNAMIC } from "@/lib/api/private-json-response";
 import { getInstagramConfig } from "@/lib/instagram/config";
 import { hasConnectedIntegration } from "@/lib/instagram/integration-service";
 import { buildAuthorizationUrl } from "@/lib/instagram/oauth";
@@ -10,7 +9,7 @@ import {
   createOAuthState,
 } from "@/lib/instagram/oauth-state";
 
-export const dynamic = PRIVATE_DYNAMIC.dynamic;
+export const dynamic = "force-dynamic";
 
 export const GET = requireAuth(async (_request, ctx) => {
   getInstagramConfig();

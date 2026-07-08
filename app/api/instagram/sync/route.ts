@@ -1,8 +1,5 @@
 import { requireAuth } from "@/lib/auth/require-auth";
-import {
-  PRIVATE_DYNAMIC,
-  privateJsonResponse,
-} from "@/lib/api/private-json-response";
+import { privateJsonResponse } from "@/lib/api/private-json-response";
 import {
   InstagramIntegrationStatus,
   InstagramSyncStatus,
@@ -10,7 +7,7 @@ import {
 import { prisma } from "@/lib/db/prisma";
 import { runSyncForTenant } from "@/lib/instagram/sync-service";
 
-export const dynamic = PRIVATE_DYNAMIC.dynamic;
+export const dynamic = "force-dynamic";
 
 export const POST = requireAuth(async (_request, ctx) => {
   const integration = await prisma.instagramIntegration.findUnique({

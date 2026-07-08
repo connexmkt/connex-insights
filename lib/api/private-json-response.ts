@@ -1,9 +1,5 @@
 import { NextResponse } from "next/server";
 
-export const PRIVATE_DYNAMIC = {
-  dynamic: "force-dynamic" as const,
-};
-
 export function privateJsonResponse(
   body: unknown,
   init?: ResponseInit,

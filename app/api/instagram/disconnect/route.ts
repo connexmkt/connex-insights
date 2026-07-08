@@ -1,12 +1,9 @@
 import { requireAuth } from "@/lib/auth/require-auth";
-import {
-  PRIVATE_DYNAMIC,
-  privateJsonResponse,
-} from "@/lib/api/private-json-response";
+import { privateJsonResponse } from "@/lib/api/private-json-response";
 import { disconnect } from "@/lib/instagram/integration-service";
 import { InstagramServiceError } from "@/types/instagram";
 
-export const dynamic = PRIVATE_DYNAMIC.dynamic;
+export const dynamic = "force-dynamic";
 
 export const POST = requireAuth(async (_request, ctx) => {
   try {
