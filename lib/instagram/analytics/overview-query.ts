@@ -1,5 +1,4 @@
 import { unstable_cache } from "next/cache";
-import { InstagramMetricScope } from "@/lib/generated/prisma";
 import { prisma } from "@/lib/db/prisma";
 import { computeTrend } from "@/lib/instagram/analytics/trend";
 import {
@@ -7,8 +6,8 @@ import {
   getComparisonRange,
   parseAnalyticsPeriod,
 } from "@/lib/instagram/analytics/period";
+import { aggregateMetricInRange } from "@/lib/instagram/analytics/metric-aggregation";
 import {
-  getMetricAggregation,
   getMetricLabel,
   OVERVIEW_KPI_METRICS,
 } from "@/lib/instagram/insights/metrics/registry";
@@ -57,42 +56,6 @@ export function buildSyncStatus(integration: {
     freshnessLabel: formatFreshnessLabel(integration.lastSyncedAt),
     integrationStatus: integration.status,
   };
-}
-
-async function aggregateMetricInRange(
-  tenantId: string,
-  integrationId: string,
-  metricName: string,
-  since: Date,
-  until: Date,
-): Promise<number | null> {
-  const rows = await prisma.instagramMetricSnapshot.findMany({
-    where: {
-      tenantId,
-      integrationId,
-      scope: InstagramMetricScope.ACCOUNT,
-      metricName,
-      breakdownKey: "",
-      metricDate: {
-        gte: since,
-        lte: until,
-      },
-    },
-    orderBy: { metricDate: "desc" },
-  });
-
-  if (rows.length === 0) {
-    return null;
-  }
-
-  const aggregation = getMetricAggregation(metricName);
-
-  if (aggregation === "latest") {
-    const latest = rows[0]?.value;
-    return latest !== null && latest !== undefined ? Number(latest) : null;
-  }
-
-  return rows.reduce((acc, row) => acc + Number(row.value ?? 0), 0);
 }
 
 async function buildKpis(

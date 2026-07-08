@@ -150,6 +150,26 @@ export function getMetricAggregation(metricName: string): MetricAggregation {
   return getMetricDefinition(metricName)?.aggregation ?? "sum";
 }
 
+const MEDIA_FALLBACK_METRICS = new Set([
+  "total_interactions",
+  "likes",
+  "comments",
+  "shares",
+  "saves",
+  "views",
+]);
+
+export function supportsMediaFallback(metricName: string): boolean {
+  return MEDIA_FALLBACK_METRICS.has(metricName);
+}
+
+export function toMediaMetricName(metricName: string): string {
+  if (metricName === "saves") {
+    return "saved";
+  }
+  return metricName;
+}
+
 export function getMediaMetricsForType(mediaType: string): string[] {
   const normalized = mediaType.toUpperCase();
   return MEDIA_METRICS_BY_TYPE[normalized] ?? DEFAULT_MEDIA_METRICS;
@@ -182,6 +202,7 @@ export const KPI_LABELS: Record<string, string> = {
   comments: "Comentários",
   shares: "Compartilhamentos",
   saves: "Salvamentos",
+  saved: "Salvamentos",
   views: "Visualizações",
   replies: "Respostas",
   reposts: "Reposts",
