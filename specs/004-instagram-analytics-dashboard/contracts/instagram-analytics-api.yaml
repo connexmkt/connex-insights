@@ -1,0 +1,329 @@
+openapi: 3.1.0
+info:
+  title: Connex Insights — Instagram Analytics API
+  version: 1.0.0
+  description: |
+    Endpoints server-side para o Dashboard de Analytics Instagram.
+    Todos os dados originam de snapshots persistidos — nunca da Meta em tempo real.
+    Requer sessão autenticada (Supabase Auth) e conta ACTIVE.
+
+servers:
+  - url: /api/instagram/analytics
+    description: Route Handlers Next.js
+
+tags:
+  - name: overview
+  - name: timeseries
+  - name: media
+  - name: audience
+  - name: sync
+
+paths:
+  /overview:
+    get:
+      tags: [overview]
+      summary: KPIs e resumo da conta para o período selecionado
+      parameters:
+        - $ref: '#/components/parameters/Period'
+        - $ref: '#/components/parameters/Compare'
+      responses:
+        '200':
+          description: KPIs agregados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OverviewResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Sem integração Instagram
+
+  /timeseries:
+    get:
+      tags: [timeseries]
+      summary: Série temporal de uma métrica de conta
+      parameters:
+        - $ref: '#/components/parameters/Period'
+        - name: metric
+          in: query
+          required: true
+          schema:
+            type: string
+            example: reach
+      responses:
+        '200':
+          description: Pontos da série temporal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeseriesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /media:
+    get:
+      tags: [media]
+      summary: Lista paginada de publicações com métricas
+      parameters:
+        - $ref: '#/components/parameters/Period'
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [published_at, reach, engagement, likes, comments, shares, saved, views]
+            default: published_at
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+      responses:
+        '200':
+          description: Publicações com métricas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /audience:
+    get:
+      tags: [audience]
+      summary: Demografia e comportamento da audiência
+      parameters:
+        - $ref: '#/components/parameters/Period'
+      responses:
+        '200':
+          description: Dados de audiência (pode conter seções indisponíveis)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AudienceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /sync-status:
+    get:
+      tags: [sync]
+      summary: Status de sincronização e frescor dos dados
+      responses:
+        '200':
+          description: Status público de sync
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncStatusResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  parameters:
+    Period:
+      name: period
+      in: query
+      required: true
+      schema:
+        type: string
+        enum: [7d, 30d, 90d, 6m, 12m]
+    Compare:
+      name: compare
+      in: query
+      schema:
+        type: boolean
+        default: false
+
+  responses:
+    Unauthorized:
+      description: Sessão inválida ou conta não ACTIVE
+
+  schemas:
+    MetricValue:
+      type: object
+      required: [name, status]
+      properties:
+        name:
+          type: string
+        label:
+          type: string
+        status:
+          type: string
+          enum: [available, unavailable]
+        value:
+          type: number
+          nullable: true
+        previousValue:
+          type: number
+          nullable: true
+        changePercent:
+          type: number
+          nullable: true
+        trend:
+          type: string
+          enum: [up, down, neutral]
+          nullable: true
+
+    OverviewResponse:
+      type: object
+      required: [period, integration, kpis, sync]
+      properties:
+        period:
+          type: object
+          properties:
+            preset:
+              type: string
+            since:
+              type: string
+              format: date
+            until:
+              type: string
+              format: date
+        integration:
+          type: object
+          properties:
+            username:
+              type: string
+            profilePictureUrl:
+              type: string
+              nullable: true
+            status:
+              type: string
+        kpis:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricValue'
+        sync:
+          $ref: '#/components/schemas/SyncStatusResponse'
+
+    TimeseriesPoint:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        value:
+          type: number
+          nullable: true
+
+    TimeseriesResponse:
+      type: object
+      properties:
+        metric:
+          type: string
+        period:
+          type: string
+        points:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimeseriesPoint'
+        comparePoints:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimeseriesPoint'
+          nullable: true
+
+    MediaItem:
+      type: object
+      properties:
+        id:
+          type: string
+        externalMediaId:
+          type: string
+        mediaType:
+          type: string
+        caption:
+          type: string
+          nullable: true
+        thumbnailUrl:
+          type: string
+          nullable: true
+        permalink:
+          type: string
+          nullable: true
+        publishedAt:
+          type: string
+          format: date-time
+          nullable: true
+        metrics:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/MetricValue'
+
+    MediaListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MediaItem'
+        pagination:
+          type: object
+          properties:
+            page:
+              type: integer
+            pageSize:
+              type: integer
+            total:
+              type: integer
+            totalPages:
+              type: integer
+
+    AudienceSegment:
+      type: object
+      properties:
+        dimension:
+          type: string
+        value:
+          type: string
+        count:
+          type: number
+          nullable: true
+        percentage:
+          type: number
+          nullable: true
+
+    AudienceResponse:
+      type: object
+      properties:
+        available:
+          type: boolean
+        demographics:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              $ref: '#/components/schemas/AudienceSegment'
+        onlineFollowers:
+          type: array
+          items:
+            $ref: '#/components/schemas/AudienceSegment'
+          nullable: true
+
+    SyncStatusResponse:
+      type: object
+      properties:
+        syncStatus:
+          type: string
+          enum: [PENDING, IN_PROGRESS, COMPLETED, FAILED]
+        lastSyncedAt:
+          type: string
+          format: date-time
+          nullable: true
+        freshnessLabel:
+          type: string
+        integrationStatus:
+          type: string

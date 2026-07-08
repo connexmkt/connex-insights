@@ -73,6 +73,20 @@ export async function getPublicIntegration(
   return toIntegrationPublic(integration);
 }
 
+export async function getDashboardIntegration(
+  tenantId: string,
+): Promise<IntegrationPublic | null> {
+  const integration = await prisma.instagramIntegration.findUnique({
+    where: { tenantId },
+  });
+
+  if (!integration) {
+    return null;
+  }
+
+  return toIntegrationPublic(integration);
+}
+
 export async function hasConnectedIntegration(tenantId: string): Promise<boolean> {
   const integration = await prisma.instagramIntegration.findUnique({
     where: { tenantId },

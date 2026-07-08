@@ -47,6 +47,7 @@ export interface InstagramGraphMediaItem {
   media_type: string;
   caption?: string;
   permalink?: string;
+  media_url?: string;
   thumbnail_url?: string;
   timestamp?: string;
 }
@@ -60,6 +61,30 @@ export interface InstagramGraphMediaResponse {
     };
     next?: string;
   };
+}
+
+export interface InstagramGraphInsightValue {
+  value?: number;
+  end_time?: string;
+}
+
+export interface InstagramGraphInsightMetric {
+  name: string;
+  period: string;
+  values?: InstagramGraphInsightValue[];
+  total_value?: {
+    breakdowns?: Array<{
+      dimension_keys: string[];
+      results: Array<{
+        dimension_values: string[];
+        value: number;
+      }>;
+    }>;
+  };
+}
+
+export interface InstagramGraphInsightsResponse {
+  data: InstagramGraphInsightMetric[];
 }
 
 export interface ShortLivedTokenResponse {

@@ -26,21 +26,19 @@ export function NetworkTabs() {
         return (
           <button
             key={net.id}
-            disabled={!isConnected}
-            onClick={() => isConnected && setActive(net.id)}
+            type="button"
+            onClick={() => setActive(net.id)}
             className={cn(
               "relative flex items-center gap-2 px-1 pb-3 pt-1 text-sm font-medium transition-colors",
-              !isConnected && "cursor-not-allowed text-muted-foreground/50",
-              isConnected &&
-                (isActive
-                  ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground"),
+              isActive
+                ? "text-foreground"
+                : "text-muted-foreground hover:text-foreground",
             )}
           >
             {net.name}
-            {!isConnected && (
+            {!isConnected && !loading && (
               <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">
-                {loading ? "…" : "Em breve"}
+                Desconectado
               </Badge>
             )}
             {isActive && isConnected && (

@@ -9,6 +9,9 @@ const instagramConfigSchema = z.object({
   oauthStateSecret: z.string().min(1),
   cronSecret: z.string().min(1),
   appUrl: z.string().url(),
+  syncBatchSize: z.number().int().positive().default(25),
+  syncMaxRetries: z.number().int().positive().default(3),
+  metricRetentionDays: z.number().int().positive().default(90),
 });
 
 export type InstagramConfig = z.infer<typeof instagramConfigSchema>;
@@ -40,6 +43,12 @@ export function getInstagramConfig(): InstagramConfig {
     oauthStateSecret: process.env.INSTAGRAM_OAUTH_STATE_SECRET,
     cronSecret: process.env.CRON_SECRET,
     appUrl: process.env.NEXT_PUBLIC_APP_URL,
+    syncBatchSize: parseInt(process.env.INSTAGRAM_SYNC_BATCH_SIZE ?? "25", 10),
+    syncMaxRetries: parseInt(process.env.INSTAGRAM_SYNC_MAX_RETRIES ?? "3", 10),
+    metricRetentionDays: parseInt(
+      process.env.INSTAGRAM_METRIC_RETENTION_DAYS ?? "90",
+      10,
+    ),
   });
 
   if (!parsed.success) {

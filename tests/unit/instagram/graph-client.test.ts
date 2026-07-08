@@ -1,6 +1,36 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { resetInstagramConfigCache } from "@/lib/instagram/config";
+
+vi.mock("@/lib/instagram/config", async (importOriginal) => {
+  const original =
+    await importOriginal<typeof import("@/lib/instagram/config")>();
+  return {
+    ...original,
+    getInstagramConfig: () => ({
+      appId: "test-app-id",
+      appSecret: "test-secret",
+      redirectUri: "http://localhost:3000/api/auth/instagram/callback",
+      oauthScopes: [
+        "instagram_business_basic",
+        "instagram_business_manage_insights",
+      ],
+      tokenEncryptionKey: Buffer.alloc(32, 2).toString("base64"),
+      oauthStateSecret: "test-state-secret",
+      cronSecret: "test-cron-secret",
+      appUrl: "http://localhost:3000",
+      syncBatchSize: 25,
+      syncMaxRetries: 3,
+      metricRetentionDays: 90,
+    }),
+  };
+});
 
 describe("graph-client", () => {
+  beforeEach(() => {
+    resetInstagramConfigCache();
+    vi.restoreAllMocks();
+  });
+
   it("fetches Instagram profile from Graph API", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(
