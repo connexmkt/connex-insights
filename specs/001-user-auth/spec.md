@@ -5,6 +5,33 @@
 **Status**: Rascunho  
 **Entrada**: Descrição do usuário — fluxo de autenticação com login e recuperação de senha, sem auto-cadastro.
 
+## Nota de atualização (2026-07-22)
+
+O identificador de acesso do formulário de login **deixou de ser o e-mail de
+contato e passou a ser um campo `login` dedicado**, armazenado em
+`profiles.login` (`String @unique`), distinto do e-mail em `auth.users`.
+Motivo: dependência cross-repo introduzida pela feature
+[`connex-crm/specs/002-provisionamento-usuarios-insights`](../../../connex-crm/specs/002-provisionamento-usuarios-insights/spec.md),
+que provisiona contas a partir do CRM com nome, e-mail de contato, `login` e
+tenant — o `login` sendo o identificador que o usuário final efetivamente usa
+para autenticar-se aqui.
+
+Impacto nesta especificação:
+
+- FR-002/FR-003: o formulário de login agora tem campos **login** e senha
+  (não mais e-mail e senha); e-mail continua existindo apenas como atributo
+  interno do `auth.users`, usado para autenticar contra o Supabase Auth
+  internamente (resolução `login → email` feita no servidor via Admin API,
+  nunca exposta ao cliente).
+- FR-007: a mensagem de erro genérica passa a ser "Login ou senha
+  incorretos.".
+- Key Entities → **Usuário**: adiciona o atributo `login` (identificador de
+  acesso público, único), mantendo e-mail como atributo interno/contato.
+- O fluxo de recuperação de senha (User Story 2, FR-008 a FR-011) **não foi
+  alterado** e continua baseado em e-mail — está fora do escopo desta
+  atualização.
+- Migration aplicada: `prisma/migrations/20260722210000_add_profile_login`.
+
 ## User Scenarios & Testing _(obrigatório)_
 
 ### User Story 1 — Login com credenciais fornecidas pela empresa (Prioridade: P1)

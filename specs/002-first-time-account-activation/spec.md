@@ -6,6 +6,10 @@
 **Entrada**: Fluxo obrigatório de ativação de conta para usuários recém-cadastrados com senha temporária.  
 **Depende de**: [001-user-auth](../001-user-auth/spec.md) — esta feature **altera** o comportamento de login e gestão de sessão definido na feature de autenticação base.
 
+## Nota de atualização (2026-07-22)
+
+Ver [`001-user-auth/spec.md` § Nota de atualização](../001-user-auth/spec.md#nota-de-atualização-2026-07-22): o identificador informado na página de login (usado tanto para login inicial com senha temporária quanto para login normal) passou de e-mail para `login` (`profiles.login`). O comportamento desta feature (login `INACTIVE` → sessão de pré-ativação → `/ativar-conta`) permanece inalterado — apenas o campo usado para identificar a conta na etapa de login mudou; a validação da senha temporária em `POST /api/auth/activate` continua usando o e-mail resolvido internamente a partir da sessão, sem impacto.
+
 ## User Scenarios & Testing _(obrigatório)_
 
 ### User Story 1 — Login inicial com credenciais temporárias (Prioridade: P1)

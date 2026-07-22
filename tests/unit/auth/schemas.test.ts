@@ -9,7 +9,7 @@ import {
 describe("loginSchema", () => {
   it("accepts valid credentials", () => {
     const result = loginSchema.safeParse({
-      email: "marina@auroracosmeticos.com",
+      login: "marina",
       password: "connex2026",
     });
 
@@ -18,16 +18,16 @@ describe("loginSchema", () => {
 
   it("rejects empty password", () => {
     const result = loginSchema.safeParse({
-      email: "marina@auroracosmeticos.com",
+      login: "marina",
       password: "",
     });
 
     expect(result.success).toBe(false);
   });
 
-  it("rejects invalid email format", () => {
+  it("rejects empty login", () => {
     const result = loginSchema.safeParse({
-      email: "invalid-email",
+      login: "",
       password: "connex2026",
     });
 

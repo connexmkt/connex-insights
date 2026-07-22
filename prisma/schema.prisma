@@ -73,6 +73,10 @@ model Profile {
   id          String     @id @db.Uuid
   tenantId    String     @map("tenant_id") @db.Uuid
   displayName String     @map("display_name")
+  /// Identificador de acesso usado no login, distinto do e-mail de contato
+  /// (`auth.users.email`). Provisionado externamente pelo connex-crm — ver
+  /// specs/001-user-auth/spec.md § Nota de atualização.
+  login       String     @unique
   role        UserRole   @default(MEMBER)
   status      UserStatus @default(INACTIVE)
   createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)

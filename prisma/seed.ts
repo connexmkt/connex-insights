@@ -135,6 +135,7 @@ async function main(): Promise<void> {
     update: {
       tenantId: SEED_TENANT_A.id,
       displayName: SEED_TENANT_A.displayName,
+      login: SEED_TENANT_A.userLogin,
       role: UserRole.MEMBER,
       status: UserStatus.ACTIVE,
     },
@@ -142,6 +143,7 @@ async function main(): Promise<void> {
       id: userAId,
       tenantId: SEED_TENANT_A.id,
       displayName: SEED_TENANT_A.displayName,
+      login: SEED_TENANT_A.userLogin,
       role: UserRole.MEMBER,
       status: UserStatus.ACTIVE,
     },
@@ -152,6 +154,7 @@ async function main(): Promise<void> {
     update: {
       tenantId: SEED_TENANT_B.id,
       displayName: SEED_TENANT_B.displayName,
+      login: SEED_TENANT_B.userLogin,
       role: UserRole.MEMBER,
       status: UserStatus.ACTIVE,
     },
@@ -159,6 +162,7 @@ async function main(): Promise<void> {
       id: userBId,
       tenantId: SEED_TENANT_B.id,
       displayName: SEED_TENANT_B.displayName,
+      login: SEED_TENANT_B.userLogin,
       role: UserRole.MEMBER,
       status: UserStatus.ACTIVE,
     },
@@ -169,6 +173,7 @@ async function main(): Promise<void> {
     update: {
       tenantId: SEED_INACTIVE_USER.tenantId,
       displayName: SEED_INACTIVE_USER.displayName,
+      login: SEED_INACTIVE_USER.userLogin,
       role: UserRole.MEMBER,
       status: UserStatus.INACTIVE,
     },
@@ -176,6 +181,7 @@ async function main(): Promise<void> {
       id: inactiveUserId,
       tenantId: SEED_INACTIVE_USER.tenantId,
       displayName: SEED_INACTIVE_USER.displayName,
+      login: SEED_INACTIVE_USER.userLogin,
       role: UserRole.MEMBER,
       status: UserStatus.INACTIVE,
     },

@@ -3,29 +3,24 @@ import { loginSchema } from "@/lib/auth/schemas";
 
 describe("login API contract", () => {
   it("defines validation rules for invalid payloads", () => {
-    const emptyEmail = loginSchema.safeParse({ email: "", password: "test" });
-    const invalidEmail = loginSchema.safeParse({
-      email: "not-an-email",
-      password: "test",
-    });
+    const emptyLogin = loginSchema.safeParse({ login: "", password: "test" });
     const emptyPassword = loginSchema.safeParse({
-      email: "user@example.com",
+      login: "marina",
       password: "",
     });
 
-    expect(emptyEmail.success).toBe(false);
-    expect(invalidEmail.success).toBe(false);
+    expect(emptyLogin.success).toBe(false);
     expect(emptyPassword.success).toBe(false);
   });
 
   it("defines generic error shape for failed authentication", () => {
     const errorShape = {
-      error: "E-mail ou senha incorretos.",
+      error: "Login ou senha incorretos.",
       code: "INVALID_CREDENTIALS",
     };
 
     expect(errorShape.error).not.toMatch(/senha incorreta/i);
-    expect(errorShape.error).not.toMatch(/e-mail não encontrado/i);
+    expect(errorShape.error).not.toMatch(/login não encontrado/i);
   });
 
   it("defines inactive account success shape with activation redirect", () => {

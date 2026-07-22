@@ -9,7 +9,7 @@ test.describe("Logout flow", () => {
 
   test("logout blocks dashboard access", async ({ page }) => {
     await page.goto("/");
-    await page.getByLabel("E-mail").fill(SEED_TENANT_A.userEmail);
+    await page.getByLabel("Login").fill(SEED_TENANT_A.userLogin);
     await page.getByLabel("Senha").fill(SEED_TENANT_A.userPassword);
     await page.getByRole("button", { name: "Entrar" }).click();
     await expect(page).toHaveURL(/\/dashboard/);

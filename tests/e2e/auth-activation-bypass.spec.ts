@@ -11,7 +11,7 @@ test.describe("Activation bypass prevention", () => {
     );
 
     await page.goto("/");
-    await page.getByLabel("E-mail").fill(SEED_INACTIVE_USER.userEmail);
+    await page.getByLabel("Login").fill(SEED_INACTIVE_USER.userLogin);
     await page.getByLabel("Senha").fill(SEED_INACTIVE_USER.temporaryPassword);
     await page.getByRole("button", { name: "Entrar" }).click();
 
@@ -35,7 +35,7 @@ test.describe("Activation bypass prevention", () => {
     );
 
     await page.goto("/");
-    await page.getByLabel("E-mail").fill(SEED_INACTIVE_USER.userEmail);
+    await page.getByLabel("Login").fill(SEED_INACTIVE_USER.userLogin);
     await page.getByLabel("Senha").fill(SEED_INACTIVE_USER.temporaryPassword);
     await page.getByRole("button", { name: "Entrar" }).click();
 

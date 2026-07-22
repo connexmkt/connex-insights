@@ -9,7 +9,7 @@ test.describe("Account activation flow", () => {
     );
 
     await page.goto("/");
-    await page.getByLabel("E-mail").fill(SEED_INACTIVE_USER.userEmail);
+    await page.getByLabel("Login").fill(SEED_INACTIVE_USER.userLogin);
     await page.getByLabel("Senha").fill(SEED_INACTIVE_USER.temporaryPassword);
     await page.getByRole("button", { name: "Entrar" }).click();
 
@@ -25,7 +25,7 @@ test.describe("Account activation flow", () => {
     );
 
     await page.goto("/");
-    await page.getByLabel("E-mail").fill(SEED_INACTIVE_USER.userEmail);
+    await page.getByLabel("Login").fill(SEED_INACTIVE_USER.userLogin);
     await page.getByLabel("Senha").fill(SEED_INACTIVE_USER.temporaryPassword);
     await page.getByRole("button", { name: "Entrar" }).click();
 
@@ -46,12 +46,12 @@ test.describe("Account activation flow", () => {
     await expect(page.getByText(SEED_INACTIVE_USER.tenantName)).toBeVisible();
 
     await page.goto("/");
-    await page.getByLabel("E-mail").fill(SEED_INACTIVE_USER.userEmail);
+    await page.getByLabel("Login").fill(SEED_INACTIVE_USER.userLogin);
     await page.getByLabel("Senha").fill(SEED_INACTIVE_USER.temporaryPassword);
     await page.getByRole("button", { name: "Entrar" }).click();
 
     await expect(page.getByRole("alert")).toContainText(
-      "E-mail ou senha incorretos",
+      "Login ou senha incorretos",
     );
   });
 });

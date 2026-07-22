@@ -4,12 +4,12 @@ import { SEED_TENANT_A } from "../helpers/seed-fixtures";
 test.describe("Login flow", () => {
   test("shows generic error for invalid credentials", async ({ page }) => {
     await page.goto("/");
-    await page.getByLabel("E-mail").fill("invalid@example.com");
+    await page.getByLabel("Login").fill("usuario-inexistente");
     await page.getByLabel("Senha").fill("wrong-password");
     await page.getByRole("button", { name: "Entrar" }).click();
 
     await expect(page.getByRole("alert")).toContainText(
-      "E-mail ou senha incorretos",
+      "Login ou senha incorretos",
     );
   });
 
@@ -20,7 +20,7 @@ test.describe("Login flow", () => {
     );
 
     await page.goto("/");
-    await page.getByLabel("E-mail").fill(SEED_TENANT_A.userEmail);
+    await page.getByLabel("Login").fill(SEED_TENANT_A.userLogin);
     await page.getByLabel("Senha").fill(SEED_TENANT_A.userPassword);
     await page.getByRole("button", { name: "Entrar" }).click();
 

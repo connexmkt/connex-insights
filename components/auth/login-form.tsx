@@ -16,7 +16,7 @@ export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [email, setEmail] = useState("");
+  const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
 
   async function handleSubmit(event: React.FormEvent): Promise<void> {
@@ -31,7 +31,7 @@ export function LoginForm() {
       const response = await fetch(`/api/auth/login${query}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ login, password }),
       });
 
       const payload: unknown = await response.json();
@@ -43,7 +43,7 @@ export function LoginForm() {
           "error" in payload &&
           typeof payload.error === "string"
             ? payload.error
-            : "E-mail ou senha incorretos.";
+            : "Login ou senha incorretos.";
         setError(message);
         return;
       }
@@ -68,14 +68,14 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="space-y-2">
-        <Label htmlFor="email">E-mail</Label>
+        <Label htmlFor="login">Login</Label>
         <Input
-          id="email"
-          type="email"
-          autoComplete="email"
-          placeholder="voce@empresa.com"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
+          id="login"
+          type="text"
+          autoComplete="username"
+          placeholder="seu.login"
+          value={login}
+          onChange={(event) => setLogin(event.target.value)}
           required
         />
       </div>

@@ -3,6 +3,7 @@ export const SEED_TENANT_A = {
   name: "Aurora Cosméticos",
   slug: "aurora-cosmeticos",
   userEmail: "marina@auroracosmeticos.com",
+  userLogin: "marina",
   userPassword: "connex2026",
   displayName: "Marina Velloso",
 } as const;
@@ -12,6 +13,7 @@ export const SEED_TENANT_B = {
   name: "Beta Industries",
   slug: "beta-industries",
   userEmail: "admin@betaindustries.com",
+  userLogin: "admin",
   userPassword: "connex2026",
   displayName: "Admin Beta",
 } as const;
@@ -22,6 +24,7 @@ export const SEED_INACTIVE_USER = {
   tenantName: "Gamma Startup",
   tenantSlug: "gamma-startup",
   userEmail: "novo@gammastartup.com",
+  userLogin: "novo",
   temporaryPassword: "temp2026!",
   newPassword: "novaSenha1",
   displayName: "Novo Usuário",
