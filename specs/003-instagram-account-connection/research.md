@@ -185,7 +185,7 @@ instagram_business_manage_insights
 
 | Variável | Escopo | Descrição |
 |----------|--------|-----------|
-| `INSTAGRAM_APP_ID` | Server | Instagram App ID (1039653678749415 em prod) |
+| `INSTAGRAM_APP_ID` | Server | Instagram App ID (1914393522817562 em prod) |
 | `INSTAGRAM_APP_SECRET` | Server | Instagram App Secret |
 | `INSTAGRAM_REDIRECT_URI` | Server | Callback OAuth (prod + dev) |
 | `INSTAGRAM_OAUTH_SCOPES` | Server | Lista separada por vírgula |

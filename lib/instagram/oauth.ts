@@ -172,6 +172,22 @@ async function parseMetaError(response: Response): Promise<never> {
   throw new MetaApiError(message, response.status);
 }
 
+/**
+ * Endpoints de token do Graph (exchange/refresh) passaram a exigir POST com
+ * application/x-www-form-urlencoded em produção; GET retorna 400
+ * "Unsupported request - method type: get".
+ */
+async function postGraphTokenRequest(
+  url: string,
+  params: URLSearchParams,
+): Promise<Response> {
+  return fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: params,
+  });
+}
+
 export async function exchangeCodeForShortLivedToken(
   code: string,
 ): Promise<ShortLivedTokenResponse> {
@@ -228,33 +244,13 @@ export async function exchangeLongLivedToken(
     access_token: shortLivedToken,
   });
 
-  const response = await fetch(`${GRAPH_TOKEN_URL}?${params.toString()}`);
+  const response = await postGraphTokenRequest(GRAPH_TOKEN_URL, params);
 
   if (!response.ok) {
     await parseMetaError(response);
   }
 
-  const json: unknown = await response.json();
-
-  if (
-    typeof json === "object" &&
-    json !== null &&
-    "access_token" in json &&
-    "expires_in" in json &&
-    typeof json.access_token === "string" &&
-    typeof json.expires_in === "number"
-  ) {
-    return {
-      access_token: json.access_token,
-      token_type:
-        "token_type" in json && typeof json.token_type === "string"
-          ? json.token_type
-          : "bearer",
-      expires_in: json.expires_in,
-    };
-  }
-
-  throw new MetaApiError("Resposta inesperada ao obter long-lived token.", 500);
+  return parseLongLivedTokenJson(await response.json());
 }
 
 export async function refreshLongLivedToken(
@@ -265,14 +261,19 @@ export async function refreshLongLivedToken(
     access_token: accessToken,
   });
 
-  const response = await fetch(`${REFRESH_TOKEN_URL}?${params.toString()}`);
+  const response = await postGraphTokenRequest(REFRESH_TOKEN_URL, params);
 
   if (!response.ok) {
     await parseMetaError(response);
   }
 
-  const json: unknown = await response.json();
+  return parseLongLivedTokenJson(await response.json(), "renovar token");
+}
 
+function parseLongLivedTokenJson(
+  json: unknown,
+  action = "obter long-lived token",
+): LongLivedTokenResponse {
   if (
     typeof json === "object" &&
     json !== null &&
@@ -291,5 +292,5 @@ export async function refreshLongLivedToken(
     };
   }
 
-  throw new MetaApiError("Resposta inesperada ao renovar token.", 500);
+  throw new MetaApiError(`Resposta inesperada ao ${action}.`, 500);
 }

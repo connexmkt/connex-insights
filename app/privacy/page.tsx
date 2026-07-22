@@ -251,36 +251,31 @@ export default function PrivacyPage() {
 
         <h3>5.2 Permissões Solicitadas</h3>
         <p>
-          Durante o processo de conexão da conta Instagram, solicitamos apenas
-          as permissões estritamente necessárias para a coleta de métricas de
-          desempenho:
+          Durante o processo de conexão da conta Instagram, solicitamos as
+          permissões configuradas no Business Login do App Meta:
         </p>
         <ul>
           <li>
             <code>instagram_business_basic</code> — acesso a informações básicas do perfil
           </li>
           <li>
-            <code>instagram_business_manage_insights</code> — acesso às métricas de
-            alcance, impressões e engajamento
-          </li>
-          <li>
             <code>instagram_business_manage_messages</code> — gestão de mensagens
-            diretas (quando autorizado)
+            diretas
           </li>
           <li>
             <code>instagram_business_manage_comments</code> — gestão de comentários
-            (quando autorizado)
           </li>
           <li>
             <code>instagram_business_content_publish</code> — publicação de conteúdo
-            (quando autorizado)
+          </li>
+          <li>
+            <code>instagram_business_manage_insights</code> — acesso às métricas de
+            alcance, impressões e engajamento
           </li>
         </ul>
         <p>
-          Não solicitamos permissões para publicar conteúdo, enviar mensagens,
-          acessar dados de usuários que não sejam os do próprio titular, ou
-          qualquer outra ação não relacionada à leitura de métricas de
-          desempenho.
+          Não solicitamos acesso a dados de usuários que não sejam os do próprio
+          titular da conta conectada, nem permissões além das listadas acima.
         </p>
 
         <h3>5.3 Uso Restrito dos Dados da Meta</h3>

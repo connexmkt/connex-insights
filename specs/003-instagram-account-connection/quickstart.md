@@ -11,7 +11,7 @@
 
 ```env
 # Meta / Instagram (server-only — NUNCA NEXT_PUBLIC_)
-INSTAGRAM_APP_ID=1039653678749415
+INSTAGRAM_APP_ID=1914393522817562
 INSTAGRAM_APP_SECRET=<instagram-app-secret>
 INSTAGRAM_REDIRECT_URI=http://localhost:3000/api/auth/instagram/callback
 INSTAGRAM_OAUTH_SCOPES=instagram_business_basic,instagram_business_manage_messages,instagram_business_manage_comments,instagram_business_content_publish,instagram_business_manage_insights

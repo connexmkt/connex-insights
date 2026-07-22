@@ -12,6 +12,9 @@ vi.mock("@/lib/instagram/config", async (importOriginal) => {
       redirectUri: "http://localhost:3000/api/auth/instagram/callback",
       oauthScopes: [
         "instagram_business_basic",
+        "instagram_business_manage_messages",
+        "instagram_business_manage_comments",
+        "instagram_business_content_publish",
         "instagram_business_manage_insights",
       ],
       tokenEncryptionKey: Buffer.alloc(32, 2).toString("base64"),
@@ -41,7 +44,15 @@ describe("oauth", () => {
     );
     expect(url.searchParams.get("response_type")).toBe("code");
     expect(url.searchParams.get("state")).toBe("signed-state");
-    expect(url.searchParams.get("scope")).toContain("instagram_business_basic");
+    expect(url.searchParams.get("scope")).toBe(
+      [
+        "instagram_business_basic",
+        "instagram_business_manage_messages",
+        "instagram_business_manage_comments",
+        "instagram_business_content_publish",
+        "instagram_business_manage_insights",
+      ].join(","),
+    );
   });
 
   it("sanitizes OAuth code with Meta fragment suffix", async () => {
@@ -120,7 +131,7 @@ describe("oauth", () => {
   });
 
   it("exchanges short-lived token for long-lived token", async () => {
-    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(
         JSON.stringify({
           access_token: "long-token",
@@ -136,5 +147,44 @@ describe("oauth", () => {
 
     expect(result.access_token).toBe("long-token");
     expect(result.expires_in).toBe(5184000);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://graph.instagram.com/access_token",
+      expect.objectContaining({
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: expect.any(URLSearchParams),
+      }),
+    );
+    const body = fetchMock.mock.calls[0]?.[1]?.body as URLSearchParams;
+    expect(body.get("grant_type")).toBe("ig_exchange_token");
+    expect(body.get("access_token")).toBe("short-token");
+  });
+
+  it("refreshes long-lived token with POST", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          access_token: "refreshed-token",
+          token_type: "bearer",
+          expires_in: 5183944,
+        }),
+        { status: 200 },
+      ),
+    );
+
+    const { refreshLongLivedToken } = await import("@/lib/instagram/oauth");
+    const result = await refreshLongLivedToken("long-token");
+
+    expect(result.access_token).toBe("refreshed-token");
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://graph.instagram.com/refresh_access_token",
+      expect.objectContaining({
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      }),
+    );
+    const body = fetchMock.mock.calls[0]?.[1]?.body as URLSearchParams;
+    expect(body.get("grant_type")).toBe("ig_refresh_token");
+    expect(body.get("access_token")).toBe("long-token");
   });
 });

@@ -12,6 +12,9 @@ vi.mock("@/lib/instagram/config", async (importOriginal) => {
       redirectUri: "http://localhost:3000/api/auth/instagram/callback",
       oauthScopes: [
         "instagram_business_basic",
+        "instagram_business_manage_messages",
+        "instagram_business_manage_comments",
+        "instagram_business_content_publish",
         "instagram_business_manage_insights",
       ],
       tokenEncryptionKey: Buffer.alloc(32, 2).toString("base64"),
