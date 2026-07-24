@@ -1,4 +1,3 @@
-import { ExportButtons } from "@/components/dashboard/export-buttons";
 import { InstagramAnalyticsDashboard } from "@/components/dashboard/instagram-analytics-dashboard";
 import { InstagramEmptyState } from "@/components/dashboard/instagram-empty-state";
 import { NetworkTabs } from "@/components/dashboard/network-tabs";
@@ -23,7 +22,6 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
             sincronizadas.
           </p>
         </div>
-        <ExportButtons />
       </div>
 
       <NetworkTabs />
