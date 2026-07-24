@@ -1,0 +1,134 @@
+name: CI
+
+on:
+  push:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Lint, type-check, testes e build
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/connex_insights_ci
+      DIRECT_URL: postgresql://ci:ci@localhost:5432/connex_insights_ci
+      NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder-key
+      SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-service-role-key
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      INSTAGRAM_APP_ID: ci-placeholder-app-id
+      INSTAGRAM_APP_SECRET: ci-placeholder-app-secret
+      INSTAGRAM_REDIRECT_URI: http://localhost:3000/api/auth/instagram/callback
+      INSTAGRAM_OAUTH_SCOPES: instagram_business_basic
+      INSTAGRAM_TOKEN_ENCRYPTION_KEY: AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=
+      INSTAGRAM_OAUTH_STATE_SECRET: ci-placeholder-oauth-state-secret
+      CRON_SECRET: ci-placeholder-cron-secret
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Habilitar Corepack
+        run: corepack enable
+
+      - name: Configurar pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Instalar dependências
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+        continue-on-error: true
+
+      - name: Type-check
+        run: pnpm typecheck
+
+      - name: Testes
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+  tag-release:
+    name: Gerar tag de versão
+    runs-on: ubuntu-latest
+    needs: quality
+    if: >-
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      !contains(github.event.head_commit.message, '[skip ci]')
+    permissions:
+      contents: write
+    outputs:
+      released: ${{ steps.bump.outputs.released }}
+      version: ${{ steps.bump.outputs.version }}
+      tag: ${{ steps.bump.outputs.tag }}
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configurar Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Habilitar Corepack
+        run: corepack enable
+
+      - name: Configurar pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Instalar dependências
+        run: pnpm install --frozen-lockfile
+
+      - name: Calcular versão e gerar changelog
+        id: bump
+        run: node .github/scripts/bump-version.mjs
+
+      - name: Commitar e criar tag
+        if: steps.bump.outputs.released == 'true'
+        run: |
+          git add package.json CHANGELOG.md
+          git commit -m "chore: Atualiza versão para ${{ steps.bump.outputs.tag }} [skip ci]"
+          git tag -a "${{ steps.bump.outputs.tag }}" -m "Versão ${{ steps.bump.outputs.tag }}"
+          git push origin HEAD:main
+          git push origin "${{ steps.bump.outputs.tag }}"
+
+  publish-release:
+    name: Publicar GitHub Release
+    runs-on: ubuntu-latest
+    needs: tag-release
+    if: needs.tag-release.outputs.released == 'true'
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Criar GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.tag-release.outputs.tag }}
+          name: ${{ needs.tag-release.outputs.tag }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

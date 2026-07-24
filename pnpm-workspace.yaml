@@ -4,3 +4,4 @@ allowBuilds:
   msw: true
   prisma: false
   sharp: true
+  unrs-resolver: true
