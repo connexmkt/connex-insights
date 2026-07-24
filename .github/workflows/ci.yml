@@ -46,16 +46,19 @@ jobs:
 
       - name: Lint
         run: pnpm lint
-        continue-on-error: true
+        continue-on-error: false
 
       - name: Type-check
         run: pnpm typecheck
+        continue-on-error: false
 
       - name: Testes
         run: pnpm test
+        continue-on-error: false
 
       - name: Build
         run: pnpm build
+        continue-on-error: false
 
   tag-release:
     name: Gerar tag de versão
