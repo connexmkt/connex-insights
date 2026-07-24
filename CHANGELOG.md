@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.2](https://github.com/connexmkt/connex-insights/compare/v1.1.1...v1.1.2) (2026-07-24)
+
+### Bug Fixes
+
+* Mostrar métricas e configurações ([36f71bc](https://github.com/connexmkt/connex-insights/commit/36f71bc5e101d2a2bf04d75188a9e105e8071f50))
+
 ## [1.1.1](https://github.com/connexmkt/connex-insights/compare/v1.1.0...v1.1.1) (2026-07-24)
 
 ### Bug Fixes
