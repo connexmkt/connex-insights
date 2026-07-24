@@ -17,3 +17,4 @@ tsconfig.tsbuildinfo
 /lib/generated/prisma
 .vscode/
 .cursor/
+.claude/
