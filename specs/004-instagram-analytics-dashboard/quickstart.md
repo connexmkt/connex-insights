@@ -80,10 +80,10 @@ curl -b cookies.txt "http://localhost:3000/api/instagram/analytics/media?period=
 ### 3.4 Cron local (opcional)
 
 ```bash
-curl -X POST http://localhost:3000/api/cron/instagram/daily-sync \
+curl http://localhost:3000/api/cron/instagram/daily-sync \
   -H "Authorization: Bearer $CRON_SECRET"
 
-curl -X POST http://localhost:3000/api/cron/instagram/purge-metrics \
+curl http://localhost:3000/api/cron/instagram/purge-metrics \
   -H "Authorization: Bearer $CRON_SECRET"
 ```
 

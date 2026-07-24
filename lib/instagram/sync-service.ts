@@ -34,8 +34,12 @@ export async function runSync(
   integrationId: string,
   options?: { timeoutMs?: number },
 ): Promise<{ jobId: string; timedOut: boolean }> {
+  // Reconexões via OAuth caem aqui também — usar o tipo real do job evita que
+  // toda reconexão refaça uma janela de 90 dias como se fosse a 1ª sync.
+  const jobType = await resolveSyncJobType(integrationId);
+
   return runSynchronizationWithTimeout(integrationId, {
-    jobType: InstagramSyncJobType.INITIAL,
+    jobType,
     timeoutMs: options?.timeoutMs ?? SYNC_TIMEOUT_MS,
   });
 }
