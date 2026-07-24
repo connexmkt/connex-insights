@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.0](https://github.com/connexmkt/connex-insights/compare/v0.2.0...v1.1.0) (2026-07-24)
+
+### Features
+
+* Adicionar componentes para o painel de análise do Instagram ([35c48be](https://github.com/connexmkt/connex-insights/commit/35c48be61065a7e5e055cc1e511972be379a4728))
+
 ## 0.2.0 (2026-07-24)
 
 ### Features
