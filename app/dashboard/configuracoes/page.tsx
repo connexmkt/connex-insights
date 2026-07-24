@@ -3,7 +3,6 @@
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { useSession } from "@/components/auth/session-provider";
 import { InstagramConnectCard } from "@/components/instagram/instagram-connect-card";
 
@@ -45,16 +44,6 @@ export default function ConfiguracoesPage(): React.JSX.Element {
       >
         <InstagramSection />
       </Suspense>
-
-      <Card className="p-6">
-        <h2 className="text-base font-semibold text-foreground">
-          Notificações
-        </h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Escolha como deseja ser avisado.
-        </p>
-        <Separator className="my-5" />
-      </Card>
     </div>
   );
 }
