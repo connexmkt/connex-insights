@@ -51,11 +51,30 @@ export interface OverviewResponse {
   sync: SyncStatusResponse;
 }
 
+export type TimeseriesSource = "account_insights" | "media_aggregate";
+
+export interface TimeseriesCoverage {
+  /** Dias com valor real dentro do período pedido. */
+  availableDays: number;
+  /** Total de dias que compõem o período pedido. */
+  totalDays: number;
+  /** true quando o histórico disponível ainda não cobre o período todo. */
+  isPartial: boolean;
+}
+
 export interface TimeseriesResponse {
   metric: string;
   period: AnalyticsPeriodPreset;
   points: TimeseriesPoint[];
   comparePoints?: TimeseriesPoint[] | null;
+  /**
+   * "account_insights": pontos vieram de snapshots diários reais da conta.
+   * "media_aggregate": a Meta só fornece total agregado (sem série diária)
+   * para essa métrica, então os pontos foram derivados somando as métricas
+   * de cada publicação pela data de publicação (aproximação).
+   */
+  source: TimeseriesSource;
+  coverage: TimeseriesCoverage;
 }
 
 export interface MediaAnalyticsItem {

@@ -32,6 +32,7 @@ import type {
   MediaAnalyticsItem,
   MetricValue,
   OverviewResponse,
+  TimeseriesCoverage,
   TimeseriesResponse,
 } from "@/types/analytics";
 
@@ -164,6 +165,21 @@ function ChartTooltip({
         </p>
       ))}
     </div>
+  );
+}
+
+function ChartCoverageBanner({
+  coverage,
+}: {
+  coverage: TimeseriesCoverage | undefined;
+}) {
+  if (!coverage?.isPartial) return null;
+
+  return (
+    <p className="mb-3 rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
+      Histórico sendo construído: {coverage.availableDays} de{" "}
+      {coverage.totalDays} dias disponíveis até agora.
+    </p>
   );
 }
 
@@ -376,6 +392,19 @@ export function MetricsChartsPanel({
             </p>
           </div>
         </div>
+
+        {metric.chartType !== "ranking" && metric.chartType !== "dual" ? (
+          <>
+            <ChartCoverageBanner coverage={timeseries?.coverage} />
+            {timeseries?.source === "media_aggregate" ? (
+              <p className="mb-3 text-xs text-muted-foreground">
+                Estimado a partir das métricas de cada publicação no período
+                selecionado (a Meta não fornece série diária para esta
+                métrica).
+              </p>
+            ) : null}
+          </>
+        ) : null}
 
         {metric.chartType === "ranking" ? (
           <SavesRankingList items={savesRanking} loading={loadingRanking} />

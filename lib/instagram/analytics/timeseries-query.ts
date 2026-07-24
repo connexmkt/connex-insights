@@ -1,17 +1,92 @@
 import { unstable_cache } from "next/cache";
 import { InstagramMetricScope } from "@/lib/generated/prisma";
 import { prisma } from "@/lib/db/prisma";
+import { buildMediaDerivedTimeseries } from "@/lib/instagram/analytics/media-timeseries";
 import {
   formatDateLabel,
   formatDateIso,
   getComparisonRange,
   parseAnalyticsPeriod,
 } from "@/lib/instagram/analytics/period";
+import { computeCoverage } from "@/lib/instagram/analytics/timeseries-coverage";
+import { supportsMediaFallback } from "@/lib/instagram/insights/metrics/registry";
 import type {
   AnalyticsPeriodPreset,
   TimeseriesPoint,
   TimeseriesResponse,
+  TimeseriesSource,
 } from "@/types/analytics";
+
+async function fetchAccountPoints(
+  tenantId: string,
+  integrationId: string,
+  metric: string,
+  since: Date,
+  until: Date,
+): Promise<TimeseriesPoint[]> {
+  const rows = await prisma.instagramMetricSnapshot.findMany({
+    where: {
+      tenantId,
+      integrationId,
+      scope: InstagramMetricScope.ACCOUNT,
+      metricName: metric,
+      breakdownKey: "",
+      metricDate: {
+        gte: since,
+        lte: until,
+      },
+    },
+    orderBy: { metricDate: "asc" },
+  });
+
+  return rows
+    .filter((row) => row.metricDate !== null)
+    .map((row) => ({
+      date: formatDateIso(row.metricDate as Date),
+      label: formatDateLabel(row.metricDate as Date),
+      value: row.value ? Number(row.value) : null,
+    }));
+}
+
+/**
+ * Reach vem com série diária nativa da Meta. Métricas como curtidas,
+ * comentários, compartilhamentos e visualizações só existem como total
+ * agregado — nesses casos preferimos a série derivada por publicação
+ * (ver `media-timeseries.ts`), que cobre o período dia a dia de verdade.
+ */
+async function resolvePoints(
+  tenantId: string,
+  integrationId: string,
+  metric: string,
+  since: Date,
+  until: Date,
+): Promise<{ points: TimeseriesPoint[]; source: TimeseriesSource }> {
+  const accountPoints = await fetchAccountPoints(
+    tenantId,
+    integrationId,
+    metric,
+    since,
+    until,
+  );
+
+  if (!supportsMediaFallback(metric)) {
+    return { points: accountPoints, source: "account_insights" };
+  }
+
+  const mediaPoints = await buildMediaDerivedTimeseries(
+    tenantId,
+    integrationId,
+    metric,
+    since,
+    until,
+  );
+
+  if (mediaPoints.length > 0) {
+    return { points: mediaPoints, source: "media_aggregate" };
+  }
+
+  return { points: accountPoints, source: "account_insights" };
+}
 
 async function fetchTimeseries(
   tenantId: string,
@@ -28,55 +103,25 @@ async function fetchTimeseries(
   }
 
   const range = parseAnalyticsPeriod(period);
-
-  const rows = await prisma.instagramMetricSnapshot.findMany({
-    where: {
-      tenantId,
-      integrationId: integration.id,
-      scope: InstagramMetricScope.ACCOUNT,
-      metricName: metric,
-      breakdownKey: "",
-      metricDate: {
-        gte: range.since,
-        lte: range.until,
-      },
-    },
-    orderBy: { metricDate: "asc" },
-  });
-
-  const points: TimeseriesPoint[] = rows
-    .filter((row) => row.metricDate !== null)
-    .map((row) => ({
-      date: formatDateIso(row.metricDate as Date),
-      label: formatDateLabel(row.metricDate as Date),
-      value: row.value ? Number(row.value) : null,
-    }));
+  const { points, source } = await resolvePoints(
+    tenantId,
+    integration.id,
+    metric,
+    range.since,
+    range.until,
+  );
 
   let comparePoints: TimeseriesPoint[] | null = null;
   if (compare) {
     const compareRange = getComparisonRange(range);
-    const compareRows = await prisma.instagramMetricSnapshot.findMany({
-      where: {
-        tenantId,
-        integrationId: integration.id,
-        scope: InstagramMetricScope.ACCOUNT,
-        metricName: metric,
-        breakdownKey: "",
-        metricDate: {
-          gte: compareRange.since,
-          lte: compareRange.until,
-        },
-      },
-      orderBy: { metricDate: "asc" },
-    });
-
-    comparePoints = compareRows
-      .filter((row) => row.metricDate !== null)
-      .map((row) => ({
-        date: formatDateIso(row.metricDate as Date),
-        label: formatDateLabel(row.metricDate as Date),
-        value: row.value ? Number(row.value) : null,
-      }));
+    const compareResolved = await resolvePoints(
+      tenantId,
+      integration.id,
+      metric,
+      compareRange.since,
+      compareRange.until,
+    );
+    comparePoints = compareResolved.points;
   }
 
   return {
@@ -84,6 +129,8 @@ async function fetchTimeseries(
     period,
     points,
     comparePoints,
+    source,
+    coverage: computeCoverage(points, range),
   };
 }
 
