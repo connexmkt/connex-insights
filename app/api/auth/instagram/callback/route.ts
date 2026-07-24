@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getTenantContext } from "@/lib/auth/session";
 import {
   type InstagramCallbackResult,
+  logGrantedScopes,
   mapCallbackError,
 } from "@/lib/instagram/callback-errors";
 import { getInstagramConfig } from "@/lib/instagram/config";
@@ -101,6 +102,7 @@ export async function GET(request: Request): Promise<Response> {
 
   try {
     shortLived = await exchangeCodeForShortLivedToken(code.trim());
+    logGrantedScopes(shortLived.permissions);
   } catch (error) {
     const mapped = mapCallbackError("token_exchange", error);
     return redirectToSettings(mapped.result, mapped.detail);

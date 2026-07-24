@@ -54,7 +54,9 @@ function parsePermissions(value: unknown): string | undefined {
   }
 
   if (Array.isArray(value)) {
-    const scopes = value.filter((item): item is string => typeof item === "string");
+    const scopes = value.filter(
+      (item): item is string => typeof item === "string",
+    );
     return scopes.length > 0 ? scopes.join(",") : undefined;
   }
 
@@ -121,10 +123,7 @@ function parseShortLivedTokenJson(
     }
   }
 
-  if (
-    "access_token" in json &&
-    typeof json.access_token === "string"
-  ) {
+  if ("access_token" in json && typeof json.access_token === "string") {
     const userId = coerceUserId(
       "user_id" in json ? json.user_id : "id" in json ? json.id : null,
     );
@@ -134,7 +133,9 @@ function parseShortLivedTokenJson(
         access_token: json.access_token,
         user_id: userId,
         permissions:
-          "permissions" in json ? parsePermissions(json.permissions) : undefined,
+          "permissions" in json
+            ? parsePermissions(json.permissions)
+            : undefined,
       };
     }
   }
@@ -172,11 +173,6 @@ async function parseMetaError(response: Response): Promise<never> {
   throw new MetaApiError(message, response.status);
 }
 
-/**
- * Endpoints de token do Graph (exchange/refresh) passaram a exigir POST com
- * application/x-www-form-urlencoded em produção; GET retorna 400
- * "Unsupported request - method type: get".
- */
 async function postGraphTokenRequest(
   url: string,
   params: URLSearchParams,
@@ -186,6 +182,63 @@ async function postGraphTokenRequest(
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: params,
   });
+}
+
+function extractGraphErrorMessage(body: unknown): string {
+  if (typeof body !== "object" || body === null) {
+    return "";
+  }
+
+  if ("error_message" in body && typeof body.error_message === "string") {
+    return body.error_message;
+  }
+
+  if (
+    "error" in body &&
+    typeof body.error === "object" &&
+    body.error !== null &&
+    "message" in body.error &&
+    typeof body.error.message === "string"
+  ) {
+    return body.error.message;
+  }
+
+  return "";
+}
+
+/** A Meta alterna, sem aviso, entre exigir GET (método documentado oficialmente
+ * em developers.facebook.com/docs/instagram-platform/reference/access_token)
+ * e POST para os endpoints de troca/renovação de token — já observamos os
+ * dois comportamentos em produção. Ambos retornam o mesmo tipo de erro
+ * genérico ("Unsupported get/post request...") quando o método não é o
+ * esperado, então tenta GET primeiro e recorre a POST só nesse cenário. */
+const UNSUPPORTED_METHOD_PATTERN =
+  /unsupported\s+(?:(?:get|post)\s+request|request\s*-\s*method\s+type:\s*(?:get|post))/i;
+
+function isUnsupportedMethodError(body: unknown): boolean {
+  return UNSUPPORTED_METHOD_PATTERN.test(extractGraphErrorMessage(body));
+}
+
+async function requestGraphToken(
+  url: string,
+  params: URLSearchParams,
+): Promise<Response> {
+  const getResponse = await fetch(`${url}?${params.toString()}`);
+
+  if (getResponse.ok) {
+    return getResponse;
+  }
+
+  const body: unknown = await getResponse
+    .clone()
+    .json()
+    .catch(() => null);
+
+  if (!isUnsupportedMethodError(body)) {
+    return getResponse;
+  }
+
+  return postGraphTokenRequest(url, params);
 }
 
 export async function exchangeCodeForShortLivedToken(
@@ -244,7 +297,7 @@ export async function exchangeLongLivedToken(
     access_token: shortLivedToken,
   });
 
-  const response = await postGraphTokenRequest(GRAPH_TOKEN_URL, params);
+  const response = await requestGraphToken(GRAPH_TOKEN_URL, params);
 
   if (!response.ok) {
     await parseMetaError(response);
@@ -261,7 +314,7 @@ export async function refreshLongLivedToken(
     access_token: accessToken,
   });
 
-  const response = await postGraphTokenRequest(REFRESH_TOKEN_URL, params);
+  const response = await requestGraphToken(REFRESH_TOKEN_URL, params);
 
   if (!response.ok) {
     await parseMetaError(response);

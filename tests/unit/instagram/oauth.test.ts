@@ -130,7 +130,7 @@ describe("oauth", () => {
     expect(result.user_id).toBe("12345");
   });
 
-  it("exchanges short-lived token for long-lived token", async () => {
+  it("exchanges short-lived token for long-lived token via GET (método documentado)", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(
         JSON.stringify({
@@ -147,20 +147,75 @@ describe("oauth", () => {
 
     expect(result.access_token).toBe("long-token");
     expect(result.expires_in).toBe(5184000);
-    expect(fetchMock).toHaveBeenCalledWith(
-      "https://graph.instagram.com/access_token",
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [calledUrl] = fetchMock.mock.calls[0] as [string];
+    expect(calledUrl.startsWith("https://graph.instagram.com/access_token?")).toBe(
+      true,
+    );
+    const calledParams = new URL(calledUrl).searchParams;
+    expect(calledParams.get("grant_type")).toBe("ig_exchange_token");
+    expect(calledParams.get("access_token")).toBe("short-token");
+  });
+
+  it("recorre a POST quando o GET retorna erro de método não suportado", async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            error: {
+              message: "Unsupported request - method type: get",
+              type: "IGApiException",
+              code: 100,
+            },
+          }),
+          { status: 400 },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            access_token: "long-token-via-post",
+            token_type: "bearer",
+            expires_in: 5184000,
+          }),
+          { status: 200 },
+        ),
+      );
+
+    const { exchangeLongLivedToken } = await import("@/lib/instagram/oauth");
+    const result = await exchangeLongLivedToken("short-token");
+
+    expect(result.access_token).toBe("long-token-via-post");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock.mock.calls[1]?.[1]).toEqual(
       expect.objectContaining({
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: expect.any(URLSearchParams),
       }),
     );
-    const body = fetchMock.mock.calls[0]?.[1]?.body as URLSearchParams;
-    expect(body.get("grant_type")).toBe("ig_exchange_token");
-    expect(body.get("access_token")).toBe("short-token");
   });
 
-  it("refreshes long-lived token with POST", async () => {
+  it("propaga erro do GET sem tentar POST quando não é erro de método não suportado", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          error_message: "Error validating access token: Session has expired",
+        }),
+        { status: 400 },
+      ),
+    );
+
+    const { exchangeLongLivedToken } = await import("@/lib/instagram/oauth");
+
+    await expect(exchangeLongLivedToken("short-token")).rejects.toThrow(
+      "Error validating access token: Session has expired",
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("refreshes long-lived token via GET (método documentado)", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(
         JSON.stringify({
@@ -176,15 +231,13 @@ describe("oauth", () => {
     const result = await refreshLongLivedToken("long-token");
 
     expect(result.access_token).toBe("refreshed-token");
-    expect(fetchMock).toHaveBeenCalledWith(
-      "https://graph.instagram.com/refresh_access_token",
-      expect.objectContaining({
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      }),
-    );
-    const body = fetchMock.mock.calls[0]?.[1]?.body as URLSearchParams;
-    expect(body.get("grant_type")).toBe("ig_refresh_token");
-    expect(body.get("access_token")).toBe("long-token");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [calledUrl] = fetchMock.mock.calls[0] as [string];
+    expect(
+      calledUrl.startsWith("https://graph.instagram.com/refresh_access_token?"),
+    ).toBe(true);
+    const calledParams = new URL(calledUrl).searchParams;
+    expect(calledParams.get("grant_type")).toBe("ig_refresh_token");
+    expect(calledParams.get("access_token")).toBe("long-token");
   });
 });

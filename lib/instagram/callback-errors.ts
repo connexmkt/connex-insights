@@ -56,6 +56,22 @@ function sanitizeDetail(message: string): string {
     .slice(0, 200);
 }
 
+/**
+ * Loga os escopos efetivamente concedidos pela Meta após a troca do
+ * authorization code pelo short-lived token. A tela de confirmação de
+ * permissões do Business Login permite que o usuário desmarque escopos
+ * individualmente, e a Meta não sinaliza isso de forma clara — esse log
+ * permite confirmar se `instagram_business_basic` (exigido pela troca de
+ * long-lived token) foi de fato concedido, sem depender do Access Token
+ * Debugger manual.
+ */
+export function logGrantedScopes(scopesGranted: string | undefined): void {
+  console.info("[instagram/callback]", {
+    stage: "token_exchange",
+    grantedScopes: scopesGranted || "(nenhum escopo retornado pela Meta)",
+  });
+}
+
 export function logCallbackError(
   stage: InstagramCallbackStage,
   error: unknown,
