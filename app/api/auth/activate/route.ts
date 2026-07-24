@@ -87,7 +87,10 @@ export const POST = requirePreActivation(async (request, context) => {
 
   if (updateError) {
     return NextResponse.json(
-      { error: "Não foi possível atualizar a senha.", code: "PASSWORD_UPDATE_FAILED" },
+      {
+        error: "Não foi possível atualizar a senha.",
+        code: "PASSWORD_UPDATE_FAILED",
+      },
       { status: 500 },
     );
   }
@@ -98,6 +101,24 @@ export const POST = requirePreActivation(async (request, context) => {
   });
 
   await syncProfileStatusMetadata(context.userId, UserStatus.ACTIVE);
+
+  // O access token emitido pelo updateUser acima ainda carrega o
+  // app_metadata.profile_status antigo (INACTIVE), pois foi gerado antes da
+  // sincronização acima. O middleware decide o redirecionamento com base
+  // nesse token (getSession, sem round-trip à API), então sem um refresh
+  // explícito aqui o usuário fica preso em loop entre /dashboard e
+  // /ativar-conta até o token expirar naturalmente.
+  const { error: refreshError } = await supabase.auth.refreshSession();
+
+  if (refreshError) {
+    return NextResponse.json(
+      {
+        error: "Não foi possível atualizar a sessão.",
+        code: "SESSION_REFRESH_FAILED",
+      },
+      { status: 500 },
+    );
+  }
 
   return NextResponse.json({
     success: true,
