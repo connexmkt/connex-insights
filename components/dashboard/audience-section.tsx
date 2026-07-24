@@ -22,7 +22,13 @@ const pieColors = [
   "var(--chart-5)",
 ];
 
-function PercentTooltip({ active, payload }: any) {
+function PercentTooltip({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: Array<{ value: number; payload: { label: string } }>;
+}) {
   if (!active || !payload?.length) return null;
   const item = payload[0];
   return (

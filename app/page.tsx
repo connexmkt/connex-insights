@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { LoginForm } from "@/components/auth/login-form";
@@ -63,10 +64,13 @@ export default function LoginPage() {
       </div>
 
       <aside className="relative hidden overflow-hidden bg-[#161622] lg:block lg:w-[54%]">
-        <img
+        <Image
           src="/login-data-art.png"
           alt="Visualização abstrata de dados de redes sociais"
-          className="absolute inset-0 size-full object-cover opacity-90"
+          fill
+          priority
+          sizes="54vw"
+          className="object-cover opacity-90"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#161622] via-[#161622]/30 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 p-12">

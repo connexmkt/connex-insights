@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Calendar, Menu, Search, Settings } from "lucide-react";
+import { Bell, Calendar, Menu, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {

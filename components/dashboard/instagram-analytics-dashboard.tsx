@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Area,
@@ -95,13 +96,7 @@ function formatNumber(value: number | null | undefined): string {
   }).format(value);
 }
 
-function MetricCard({
-  metric,
-  index,
-}: {
-  metric: MetricValue;
-  index: number;
-}): React.JSX.Element {
+function MetricCard({ metric }: { metric: MetricValue }): React.JSX.Element {
   const Icon = KPI_ICONS[metric.name] ?? Users;
   const positive = metric.trend === "up";
   const negative = metric.trend === "down";
@@ -191,7 +186,9 @@ export function InstagramAnalyticsDashboard({
   const [compare, setCompare] = useState(false);
   const [loading, setLoading] = useState(true);
   const [overview, setOverview] = useState<OverviewResponse | null>(null);
-  const [reachSeries, setReachSeries] = useState<TimeseriesResponse | null>(null);
+  const [reachSeries, setReachSeries] = useState<TimeseriesResponse | null>(
+    null,
+  );
   const [followerSeries, setFollowerSeries] =
     useState<TimeseriesResponse | null>(null);
   const [media, setMedia] = useState<MediaListResponse | null>(null);
@@ -272,7 +269,9 @@ export function InstagramAnalyticsDashboard({
     }
 
     sessionStorage.setItem(storageKey, "1");
-    void handleImportMetrics();
+    // Adiado para fora do corpo síncrono do efeito, evitando o disparo de
+    // renders em cascata (react-hooks/set-state-in-effect).
+    void Promise.resolve().then(() => handleImportMetrics());
   }, [handleImportMetrics, integration.id, metricsBackfillNeeded]);
 
   useEffect(() => {
@@ -344,13 +343,15 @@ export function InstagramAnalyticsDashboard({
       {metricsBackfillNeeded ? (
         <MetricsBackfillBanner
           onSync={() => void handleImportMetrics()}
-          syncing={syncingMetrics || overview?.sync.syncStatus === "IN_PROGRESS"}
+          syncing={
+            syncingMetrics || overview?.sync.syncStatus === "IN_PROGRESS"
+          }
         />
       ) : null}
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
-        {overview?.kpis.map((metric, index) => (
-          <MetricCard key={metric.name} metric={metric} index={index} />
+        {overview?.kpis.map((metric) => (
+          <MetricCard key={metric.name} metric={metric} />
         ))}
       </div>
 
@@ -444,9 +445,11 @@ export function InstagramAnalyticsDashboard({
                   <TableRow key={item.id}>
                     <TableCell className="pl-6">
                       <div className="flex items-center gap-3">
-                        <img
+                        <Image
                           src={item.thumbnailUrl ?? "/placeholder.svg"}
                           alt=""
+                          width={40}
+                          height={40}
                           className="size-10 rounded-md object-cover"
                         />
                         <span className="max-w-[220px] truncate text-sm">
@@ -487,26 +490,30 @@ export function InstagramAnalyticsDashboard({
         <CardContent>
           {audience?.available ? (
             <div className="grid gap-4 md:grid-cols-2">
-              {Object.entries(audience.demographics).map(([dimension, segments]) => (
-                <div key={dimension} className="space-y-3">
-                  <p className="text-sm font-medium capitalize">{dimension}</p>
-                  {segments.slice(0, 5).map((segment) => (
-                    <div
-                      key={`${dimension}-${segment.value}`}
-                      className="flex items-center justify-between text-sm"
-                    >
-                      <span className="text-muted-foreground">
-                        {segment.value}
-                      </span>
-                      <span className="font-medium tabular-nums">
-                        {segment.percentage !== null
-                          ? `${segment.percentage}%`
-                          : formatNumber(segment.count)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ))}
+              {Object.entries(audience.demographics).map(
+                ([dimension, segments]) => (
+                  <div key={dimension} className="space-y-3">
+                    <p className="text-sm font-medium capitalize">
+                      {dimension}
+                    </p>
+                    {segments.slice(0, 5).map((segment) => (
+                      <div
+                        key={`${dimension}-${segment.value}`}
+                        className="flex items-center justify-between text-sm"
+                      >
+                        <span className="text-muted-foreground">
+                          {segment.value}
+                        </span>
+                        <span className="font-medium tabular-nums">
+                          {segment.percentage !== null
+                            ? `${segment.percentage}%`
+                            : formatNumber(segment.count)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ),
+              )}
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">

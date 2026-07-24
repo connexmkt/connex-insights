@@ -37,7 +37,9 @@ export function useInstagramIntegration() {
   }, []);
 
   useEffect(() => {
-    void refetch();
+    // Adiado para fora do corpo síncrono do efeito, evitando o disparo de
+    // renders em cascata (react-hooks/set-state-in-effect).
+    void Promise.resolve().then(() => refetch());
   }, [refetch]);
 
   return { integration, connected, loading, refetch };

@@ -32,7 +32,17 @@ function formatCompact(n: number) {
   }).format(n);
 }
 
-function ChartTooltip({ active, payload, label, suffix }: any) {
+function ChartTooltip({
+  active,
+  payload,
+  label,
+  suffix,
+}: {
+  active?: boolean;
+  payload?: Array<{ value: number }>;
+  label?: string;
+  suffix?: string;
+}) {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-lg border border-border bg-popover px-3 py-2 text-popover-foreground shadow-md">

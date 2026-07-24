@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -52,9 +53,11 @@ export function TopPosts() {
                 <TableRow key={post.id}>
                   <TableCell className="pl-6">
                     <div className="flex items-center gap-3">
-                      <img
+                      <Image
                         src={post.thumb || "/placeholder.svg"}
                         alt=""
+                        width={40}
+                        height={40}
                         className="size-10 shrink-0 rounded-md object-cover"
                       />
                       <span className="max-w-[200px] truncate text-sm font-medium">

@@ -18,10 +18,7 @@ function parseBreakdownKey(breakdownKey: string): {
   };
 }
 
-async function fetchAudience(
-  tenantId: string,
-  _period: AnalyticsPeriodPreset,
-): Promise<AudienceResponse | null> {
+async function fetchAudience(tenantId: string): Promise<AudienceResponse | null> {
   const integration = await prisma.instagramIntegration.findUnique({
     where: { tenantId },
   });
@@ -107,7 +104,7 @@ export async function getAudienceAnalytics(
   period: AnalyticsPeriodPreset,
 ): Promise<AudienceResponse | null> {
   return unstable_cache(
-    async () => fetchAudience(tenantId, period),
+    async () => fetchAudience(tenantId),
     [`audience`, tenantId, period],
     {
       tags: [`instagram-analytics-${tenantId}`],
