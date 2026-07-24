@@ -41,11 +41,16 @@ export async function updateSession(
     },
   });
 
+  // Usa getUser() em vez de getSession(): getSession() apenas decodifica o
+  // JWT já presente no cookie, então o app_metadata (profile_status) pode
+  // ficar desatualizado por até a duração do access token após uma mudança
+  // de status (ex.: ativação de conta), causando loop de redirecionamento
+  // entre /dashboard e /ativar-conta. getUser() consulta o servidor
+  // Supabase Auth a cada request e sempre retorna o app_metadata atual.
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user: authUser },
+  } = await supabase.auth.getUser();
 
-  const authUser = session?.user;
   if (!authUser) {
     return { response: supabaseResponse, user: null };
   }
