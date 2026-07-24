@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/connexmkt/connex-insights/compare/v1.1.0...v1.1.1) (2026-07-24)
+
+### Bug Fixes
+
+* Corrige cron jobs que nunca executavam por aceitarem só POST ([d2e2a78](https://github.com/connexmkt/connex-insights/commit/d2e2a780ce81212f3f2050ed3c4a95cd11153f3a))
+* Deriva série diária por publicação para métricas sem histórico nativo ([c7b237c](https://github.com/connexmkt/connex-insights/commit/c7b237c50dc1ccb275673caabdb16e1192cbb16b))
+
 ## [1.1.0](https://github.com/connexmkt/connex-insights/compare/v0.2.0...v1.1.0) (2026-07-24)
 
 ### Features
