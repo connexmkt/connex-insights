@@ -2,19 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  LayoutDashboard,
-  Camera,
-  Music,
-  Users,
-  Briefcase,
-  Play,
-  FileBarChart,
-  Download,
-  Settings,
-  HelpCircle,
-  LogOut,
-} from "lucide-react";
+import { LayoutDashboard, Settings, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ConnexLogo } from "@/components/connex-logo";
 import { Badge } from "@/components/ui/badge";
@@ -29,14 +17,10 @@ type NavItem = {
 
 const mainNav: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Instagram", href: "/dashboard", icon: Camera },
 ];
 
 const workNav: NavItem[] = [
-  { label: "Relatórios", href: "/dashboard/relatorios", icon: FileBarChart },
-  { label: "Exportações", href: "/dashboard/relatorios", icon: Download },
   { label: "Configurações", href: "/dashboard/configuracoes", icon: Settings },
-  { label: "Ajuda", href: "/dashboard/ajuda", icon: HelpCircle },
 ];
 
 function NavLink({ item, active }: { item: NavItem; active: boolean }) {

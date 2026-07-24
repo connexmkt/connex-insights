@@ -2,7 +2,6 @@
 
 import { Bell, Calendar, Menu, Search, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -19,15 +18,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { SidebarNav } from "@/components/dashboard/sidebar-nav";
-import { LogoutButton, useLogout } from "@/components/auth/logout-button";
+import { useLogout } from "@/components/auth/logout-button";
 import type { TenantContext } from "@/types/auth";
-
-const periods = [
-  "Últimos 7 dias",
-  "Últimos 30 dias",
-  "Últimos 90 dias",
-  "Últimos 12 meses",
-];
 
 function getInitials(displayName: string): string {
   return displayName
@@ -41,7 +33,6 @@ function getInitials(displayName: string): string {
 export function DashboardHeader({
   session,
   period,
-  onPeriodChange,
 }: {
   session: TenantContext;
   period: string;
@@ -53,9 +44,7 @@ export function DashboardHeader({
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-md lg:px-6">
       <Sheet>
         <SheetTrigger
-          render={
-            <Button variant="ghost" size="icon" className="lg:hidden" />
-          }
+          render={<Button variant="ghost" size="icon" className="lg:hidden" />}
         >
           <Menu className="size-5" />
           <span className="sr-only">Abrir menu</span>
@@ -73,27 +62,13 @@ export function DashboardHeader({
       </div>
 
       <div className="ml-auto flex items-center gap-2">
-        <div className="relative hidden md:block">
-          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Buscar..." className="h-9 w-48 pl-9 lg:w-56" />
-        </div>
-
         <DropdownMenu>
           <DropdownMenuTrigger
-            render={
-              <Button variant="outline" size="sm" className="gap-2" />
-            }
+            render={<Button variant="outline" size="sm" className="gap-2" />}
           >
             <Calendar className="size-4" />
             <span className="hidden sm:inline">{period}</span>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {periods.map((item) => (
-              <DropdownMenuItem key={item} onClick={() => onPeriodChange(item)}>
-                {item}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
         </DropdownMenu>
 
         <Button variant="ghost" size="icon" className="relative">
@@ -122,7 +97,9 @@ export function DashboardHeader({
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>
               <div className="flex flex-col">
-                <span className="text-sm font-medium">{session.displayName}</span>
+                <span className="text-sm font-medium">
+                  {session.displayName}
+                </span>
                 <span className="text-xs font-normal text-muted-foreground">
                   {session.email}
                 </span>
