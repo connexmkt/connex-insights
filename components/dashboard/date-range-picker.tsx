@@ -21,8 +21,6 @@ interface DateRangePickerProps {
 export function DateRangePicker({
   value,
   onChange,
-  compare,
-  onCompareChange,
 }: DateRangePickerProps): React.JSX.Element {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -47,15 +45,6 @@ export function DateRangePicker({
           </button>
         ))}
       </div>
-      <label className="flex items-center gap-2 text-sm text-muted-foreground">
-        <input
-          type="checkbox"
-          checked={compare}
-          onChange={(event) => onCompareChange(event.target.checked)}
-          className="size-4 rounded border-border"
-        />
-        Comparar com período anterior
-      </label>
     </div>
   );
 }
