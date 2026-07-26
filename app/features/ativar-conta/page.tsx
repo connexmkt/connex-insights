@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { ActivateAccountForm } from "@/components/auth/activate-account-form";
+import { ActivateAccountForm } from "@/app/features/ativar-conta/components/ActivateAccountForm";
 import { AuthPageShell } from "@/components/auth/auth-page-shell";
 import { getPreActivationContext, getTenantContext } from "@/lib/auth/session";
 
