@@ -52,7 +52,7 @@ export function AuthPageShell({
         </footer>
       </div>
 
-      <aside className="relative hidden overflow-hidden bg-[#161622] lg:block lg:w-[54%]">
+      <aside className="relative hidden overflow-hidden bg-[#17161c] lg:block lg:w-[54%]">
         <Image
           src="/login-data-art.png"
           alt="Visualização abstrata de dados de redes sociais"
@@ -61,7 +61,7 @@ export function AuthPageShell({
           sizes="54vw"
           className="object-cover opacity-90"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#161622] via-[#161622]/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#17161c] via-[#17161c]/30 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 p-12">
           <p className="max-w-md font-heading text-2xl font-medium leading-snug text-balance text-white">
             Transforme dados em decisões inteligentes para a sua marca.
