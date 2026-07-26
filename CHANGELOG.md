@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.0](https://github.com/connexmkt/connex-insights/compare/v1.1.2...v1.2.0) (2026-07-26)
+
+### Features
+
+* Adiciona informação sobre horário de sincronização de dados ([6ebf1d7](https://github.com/connexmkt/connex-insights/commit/6ebf1d7526ee90c993a63b8a12d1b05a186cb170))
+
 ## [1.1.2](https://github.com/connexmkt/connex-insights/compare/v1.1.1...v1.1.2) (2026-07-24)
 
 ### Bug Fixes
