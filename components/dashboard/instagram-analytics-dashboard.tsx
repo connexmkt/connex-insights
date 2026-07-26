@@ -1,13 +1,20 @@
 "use client";
 
+import { Info } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { DateRangePicker } from "@/components/dashboard/date-range-picker";
 import { MetricsBackfillBanner } from "@/components/dashboard/metrics-backfill-banner";
 import { MetricsChartsPanel } from "@/components/dashboard/metrics-charts-panel";
 import { SyncStatusBanner } from "@/components/dashboard/sync-status-banner";
 import { TopPostsRanking } from "@/components/dashboard/top-posts-ranking";
+import { getDailySyncTimeLabel } from "@/lib/instagram/sync-schedule";
 import type {
   AnalyticsPeriodPreset,
   AudienceResponse,
@@ -15,6 +22,8 @@ import type {
   OverviewResponse,
 } from "@/types/analytics";
 import type { IntegrationPublic } from "@/types/instagram";
+
+const DAILY_SYNC_TIME_LABEL = getDailySyncTimeLabel();
 
 const INSIGHT_METRICS = [
   "reach",
@@ -180,9 +189,22 @@ export function InstagramAnalyticsDashboard({
             <p className="font-heading text-lg font-semibold">
               @{integration.username}
             </p>
-            <p className="text-sm text-muted-foreground">
-              {overview?.sync.freshnessLabel ?? "Carregando status..."}
-            </p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-sm text-muted-foreground">
+                {overview?.sync.freshnessLabel ?? "Carregando status..."}
+              </p>
+              <Tooltip>
+                <TooltipTrigger className="inline-flex text-muted-foreground hover:text-foreground">
+                  <Info className="size-3.5" />
+                  <span className="sr-only">
+                    Informações sobre a atualização automática dos dados
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Atualiza automaticamente às {DAILY_SYNC_TIME_LABEL}
+                </TooltipContent>
+              </Tooltip>
+            </div>
           </div>
         </div>
         <DateRangePicker
