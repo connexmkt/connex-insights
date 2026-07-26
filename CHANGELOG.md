@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.0](https://github.com/connexmkt/connex-insights/compare/v1.2.0...v1.3.0) (2026-07-26)
+
+### Features
+
+* Adiciona nova paleta às telas da aplicação ([0d7f1e4](https://github.com/connexmkt/connex-insights/commit/0d7f1e4d500787e2881596fb1cbfc504caa4ddbe))
+
 ## [1.2.0](https://github.com/connexmkt/connex-insights/compare/v1.1.2...v1.2.0) (2026-07-26)
 
 ### Features
