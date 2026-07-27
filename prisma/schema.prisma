@@ -57,6 +57,17 @@ enum InstagramMetricScope {
   AUDIENCE
 }
 
+enum InstagramReportType {
+  WEEKLY
+  MONTHLY
+}
+
+enum InstagramPendingReportStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
 model Tenant {
   id                   String                @id @default(uuid()) @db.Uuid
   name                 String
@@ -189,6 +200,28 @@ model InstagramSyncJob {
   @@index([integrationId, status])
   @@index([tenantId, createdAt(sort: Desc)])
   @@map("instagram_sync_jobs")
+}
+
+model InstagramPendingReport {
+  id             String                       @id @default(uuid()) @db.Uuid
+  tenantId       String                       @map("tenant_id") @db.Uuid
+  reportType     InstagramReportType          @map("report_type")
+  sourceReportId String                       @unique @map("source_report_id")
+  year           Int
+  month          Int
+  week           Int?
+  periodStart    DateTime                     @map("period_start") @db.Timestamptz(6)
+  periodEnd      DateTime                     @map("period_end") @db.Timestamptz(6)
+  payload        Json
+  status         InstagramPendingReportStatus @default(PENDING)
+  generatedAt    DateTime                     @map("generated_at") @db.Timestamptz(6)
+  sentAt         DateTime?                    @map("sent_at") @db.Timestamptz(6)
+  failureReason  String?                      @map("failure_reason")
+  createdAt      DateTime                     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime                     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([tenantId, reportType, status])
+  @@map("instagram_pending_reports")
 }
 
 model InstagramMetricSnapshot {
