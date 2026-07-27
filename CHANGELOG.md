@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.0](https://github.com/connexmkt/connex-insights/compare/v1.3.1...v1.4.0) (2026-07-27)
+
+### Features
+
+* Cria nova tabela e entidade para relatórios semanais e mensais ([af42f8e](https://github.com/connexmkt/connex-insights/commit/af42f8ee01252a474d8176379e1a4564ceb6f77a))
+
 ## [1.3.1](https://github.com/connexmkt/connex-insights/compare/v1.3.0...v1.3.1) (2026-07-27)
 
 ### Bug Fixes
