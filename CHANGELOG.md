@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.1](https://github.com/connexmkt/connex-insights/compare/v1.3.0...v1.3.1) (2026-07-27)
+
+### Bug Fixes
+
+* Corrige bug ao clicar no ícone de perfil ([04b542c](https://github.com/connexmkt/connex-insights/commit/04b542cf33874592f075622a0a0d2adf9bcdfb32))
+
 ## [1.3.0](https://github.com/connexmkt/connex-insights/compare/v1.2.0...v1.3.0) (2026-07-26)
 
 ### Features
