@@ -5,10 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -18,7 +14,6 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { SidebarNav } from "@/components/dashboard/sidebar-nav";
-import { useLogout } from "@/components/auth/logout-button";
 import type { TenantContext } from "@/types/auth";
 
 function getInitials(displayName: string): string {
@@ -38,8 +33,6 @@ export function DashboardHeader({
   period: string;
   onPeriodChange: (period: string) => void;
 }) {
-  const { logout, loggingOut } = useLogout();
-
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-md lg:px-6">
       <Sheet>
@@ -82,42 +75,14 @@ export function DashboardHeader({
           <span className="sr-only">Configurações</span>
         </Button>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <button className="flex items-center gap-2 rounded-full pl-1 outline-none" />
-            }
-          >
-            <Avatar className="size-9">
-              <AvatarFallback className="bg-primary/10 text-sm font-semibold text-primary">
-                {getInitials(session.displayName)}
-              </AvatarFallback>
-            </Avatar>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>
-              <div className="flex flex-col">
-                <span className="text-sm font-medium">
-                  {session.displayName}
-                </span>
-                <span className="text-xs font-normal text-muted-foreground">
-                  {session.email}
-                </span>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>Perfil</DropdownMenuItem>
-            <DropdownMenuItem>Configurações</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              variant="destructive"
-              disabled={loggingOut}
-              onClick={() => void logout()}
-            >
-              Sair
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {/* Perfil — sem ação por enquanto */}
+        <div className="flex items-center gap-2 pl-1">
+          <Avatar className="size-9">
+            <AvatarFallback className="bg-primary/10 text-sm font-semibold text-primary">
+              {getInitials(session.displayName)}
+            </AvatarFallback>
+          </Avatar>
+        </div>
       </div>
     </header>
   );
