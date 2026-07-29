@@ -50,7 +50,9 @@ export function buildPostPayload(
   }
 
   const primaryMetricValue = metricsMap[PRIMARY_METRIC] ?? null;
-  const { [PRIMARY_METRIC]: _primary, ...otherMetrics } = metricsMap;
+  const otherMetrics = Object.fromEntries(
+    Object.entries(metricsMap).filter(([key]) => key !== PRIMARY_METRIC),
+  );
 
   return {
     instagramMediaId: media.externalMediaId,

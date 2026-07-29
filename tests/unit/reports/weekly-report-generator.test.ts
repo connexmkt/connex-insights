@@ -1,5 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { InstagramIntegrationStatus } from "@/lib/generated/prisma";
+import {
+  InstagramIntegrationStatus,
+  type InstagramIntegration,
+  type InstagramMedia,
+  type InstagramMetricSnapshot,
+} from "@/lib/generated/prisma";
 import {
   generateWeeklyReportForTenant,
   generateWeeklyReportsForAllTenants,
@@ -60,6 +65,16 @@ function makeSnapshot(
   };
 }
 
+function makeIntegration(
+  status: InstagramIntegrationStatus = InstagramIntegrationStatus.CONNECTED,
+) {
+  return {
+    id: INTEGRATION_ID,
+    tenantId: TENANT_ID,
+    status,
+  } as unknown as InstagramIntegration;
+}
+
 describe("generateWeeklyReportForTenant", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -74,11 +89,9 @@ describe("generateWeeklyReportForTenant", () => {
   });
 
   it("retorna null quando a integração não está CONNECTED", async () => {
-    vi.mocked(prisma.instagramIntegration.findUnique).mockResolvedValue({
-      id: INTEGRATION_ID,
-      tenantId: TENANT_ID,
-      status: "DISCONNECTED" as InstagramIntegrationStatus,
-    } as any);
+    vi.mocked(prisma.instagramIntegration.findUnique).mockResolvedValue(
+      makeIntegration("DISCONNECTED" as InstagramIntegrationStatus),
+    );
 
     const result = await generateWeeklyReportForTenant(TENANT_ID, makeWeekRange());
 
@@ -86,12 +99,12 @@ describe("generateWeeklyReportForTenant", () => {
   });
 
   it("retorna status PARTIAL quando não há posts no período", async () => {
-    vi.mocked(prisma.instagramIntegration.findUnique).mockResolvedValue({
-      id: INTEGRATION_ID,
-      tenantId: TENANT_ID,
-      status: InstagramIntegrationStatus.CONNECTED,
-    } as any);
-    vi.mocked(prisma.instagramMedia.findMany).mockResolvedValue([] as any);
+    vi.mocked(prisma.instagramIntegration.findUnique).mockResolvedValue(
+      makeIntegration(),
+    );
+    vi.mocked(prisma.instagramMedia.findMany).mockResolvedValue(
+      [] as unknown as InstagramMedia[],
+    );
 
     const result = await generateWeeklyReportForTenant(TENANT_ID, makeWeekRange());
 
@@ -102,13 +115,15 @@ describe("generateWeeklyReportForTenant", () => {
   });
 
   it("retorna status PARTIAL quando há posts mas nenhum tem total_interactions", async () => {
-    vi.mocked(prisma.instagramIntegration.findUnique).mockResolvedValue({
-      id: INTEGRATION_ID,
-      tenantId: TENANT_ID,
-      status: InstagramIntegrationStatus.CONNECTED,
-    } as any);
-    vi.mocked(prisma.instagramMedia.findMany).mockResolvedValue([makeMedia("ext1")] as any);
-    vi.mocked(prisma.instagramMetricSnapshot.findMany).mockResolvedValue([] as any);
+    vi.mocked(prisma.instagramIntegration.findUnique).mockResolvedValue(
+      makeIntegration(),
+    );
+    vi.mocked(prisma.instagramMedia.findMany).mockResolvedValue(
+      [makeMedia("ext1")] as unknown as InstagramMedia[],
+    );
+    vi.mocked(prisma.instagramMetricSnapshot.findMany).mockResolvedValue(
+      [] as unknown as InstagramMetricSnapshot[],
+    );
 
     const result = await generateWeeklyReportForTenant(TENANT_ID, makeWeekRange());
 
@@ -118,19 +133,17 @@ describe("generateWeeklyReportForTenant", () => {
   });
 
   it("retorna AVAILABLE com bestPost e worstPost distintos quando há múltiplos posts com métricas", async () => {
-    vi.mocked(prisma.instagramIntegration.findUnique).mockResolvedValue({
-      id: INTEGRATION_ID,
-      tenantId: TENANT_ID,
-      status: InstagramIntegrationStatus.CONNECTED,
-    } as any);
+    vi.mocked(prisma.instagramIntegration.findUnique).mockResolvedValue(
+      makeIntegration(),
+    );
     vi.mocked(prisma.instagramMedia.findMany).mockResolvedValue([
       makeMedia("ext1"),
       makeMedia("ext2"),
-    ] as any);
+    ] as unknown as InstagramMedia[]);
     vi.mocked(prisma.instagramMetricSnapshot.findMany).mockResolvedValue([
       makeSnapshot("ext1", 100),
       makeSnapshot("ext2", 40),
-    ] as any);
+    ] as unknown as InstagramMetricSnapshot[]);
 
     const result = await generateWeeklyReportForTenant(TENANT_ID, makeWeekRange());
 
@@ -142,15 +155,15 @@ describe("generateWeeklyReportForTenant", () => {
   });
 
   it("retorna worstPost=null quando há apenas um post com métricas", async () => {
-    vi.mocked(prisma.instagramIntegration.findUnique).mockResolvedValue({
-      id: INTEGRATION_ID,
-      tenantId: TENANT_ID,
-      status: InstagramIntegrationStatus.CONNECTED,
-    } as any);
-    vi.mocked(prisma.instagramMedia.findMany).mockResolvedValue([makeMedia("ext1")] as any);
+    vi.mocked(prisma.instagramIntegration.findUnique).mockResolvedValue(
+      makeIntegration(),
+    );
+    vi.mocked(prisma.instagramMedia.findMany).mockResolvedValue(
+      [makeMedia("ext1")] as unknown as InstagramMedia[],
+    );
     vi.mocked(prisma.instagramMetricSnapshot.findMany).mockResolvedValue([
       makeSnapshot("ext1", 100),
-    ] as any);
+    ] as unknown as InstagramMetricSnapshot[]);
 
     const result = await generateWeeklyReportForTenant(TENANT_ID, makeWeekRange());
 
@@ -160,12 +173,12 @@ describe("generateWeeklyReportForTenant", () => {
   });
 
   it("popula os campos de período e referência corretamente", async () => {
-    vi.mocked(prisma.instagramIntegration.findUnique).mockResolvedValue({
-      id: INTEGRATION_ID,
-      tenantId: TENANT_ID,
-      status: InstagramIntegrationStatus.CONNECTED,
-    } as any);
-    vi.mocked(prisma.instagramMedia.findMany).mockResolvedValue([] as any);
+    vi.mocked(prisma.instagramIntegration.findUnique).mockResolvedValue(
+      makeIntegration(),
+    );
+    vi.mocked(prisma.instagramMedia.findMany).mockResolvedValue(
+      [] as unknown as InstagramMedia[],
+    );
 
     const result = await generateWeeklyReportForTenant(TENANT_ID, makeWeekRange());
 
@@ -179,16 +192,16 @@ describe("generateWeeklyReportForTenant", () => {
   });
 
   it("usa o snapshot mais recente quando há múltiplos snapshots da mesma métrica", async () => {
-    vi.mocked(prisma.instagramIntegration.findUnique).mockResolvedValue({
-      id: INTEGRATION_ID,
-      tenantId: TENANT_ID,
-      status: InstagramIntegrationStatus.CONNECTED,
-    } as any);
-    vi.mocked(prisma.instagramMedia.findMany).mockResolvedValue([makeMedia("ext1")] as any);
+    vi.mocked(prisma.instagramIntegration.findUnique).mockResolvedValue(
+      makeIntegration(),
+    );
+    vi.mocked(prisma.instagramMedia.findMany).mockResolvedValue(
+      [makeMedia("ext1")] as unknown as InstagramMedia[],
+    );
     vi.mocked(prisma.instagramMetricSnapshot.findMany).mockResolvedValue([
       makeSnapshot("ext1", 50, "total_interactions", "2026-07-21T00:00:00Z"),
       makeSnapshot("ext1", 80, "total_interactions", "2026-07-23T00:00:00Z"),
-    ] as any);
+    ] as unknown as InstagramMetricSnapshot[]);
 
     const result = await generateWeeklyReportForTenant(TENANT_ID, makeWeekRange());
 
@@ -206,15 +219,15 @@ describe("generateWeeklyReportsForAllTenants", () => {
     vi.mocked(prisma.instagramIntegration.findMany).mockResolvedValue([
       { tenantId: "tenant-1" },
       { tenantId: "tenant-2" },
-    ] as any);
+    ] as unknown as InstagramIntegration[]);
     vi.mocked(prisma.instagramIntegration.findUnique)
-      .mockResolvedValueOnce({
-        id: "int-1",
-        tenantId: "tenant-1",
-        status: InstagramIntegrationStatus.CONNECTED,
-      } as any)
+      .mockResolvedValueOnce(
+        makeIntegration(InstagramIntegrationStatus.CONNECTED),
+      )
       .mockResolvedValueOnce(null);
-    vi.mocked(prisma.instagramMedia.findMany).mockResolvedValue([] as any);
+    vi.mocked(prisma.instagramMedia.findMany).mockResolvedValue(
+      [] as unknown as InstagramMedia[],
+    );
 
     const results = await generateWeeklyReportsForAllTenants(new Date("2026-07-27T02:00:00Z"));
 
@@ -226,7 +239,9 @@ describe("generateWeeklyReportsForAllTenants", () => {
   });
 
   it("retorna lista vazia quando não há integrações CONNECTED", async () => {
-    vi.mocked(prisma.instagramIntegration.findMany).mockResolvedValue([] as any);
+    vi.mocked(prisma.instagramIntegration.findMany).mockResolvedValue(
+      [] as unknown as InstagramIntegration[],
+    );
 
     const results = await generateWeeklyReportsForAllTenants();
 
@@ -236,13 +251,13 @@ describe("generateWeeklyReportsForAllTenants", () => {
   it("calcula o intervalo da semana anterior com base na data fornecida", async () => {
     vi.mocked(prisma.instagramIntegration.findMany).mockResolvedValue([
       { tenantId: TENANT_ID },
-    ] as any);
-    vi.mocked(prisma.instagramIntegration.findUnique).mockResolvedValue({
-      id: INTEGRATION_ID,
-      tenantId: TENANT_ID,
-      status: InstagramIntegrationStatus.CONNECTED,
-    } as any);
-    vi.mocked(prisma.instagramMedia.findMany).mockResolvedValue([] as any);
+    ] as unknown as InstagramIntegration[]);
+    vi.mocked(prisma.instagramIntegration.findUnique).mockResolvedValue(
+      makeIntegration(),
+    );
+    vi.mocked(prisma.instagramMedia.findMany).mockResolvedValue(
+      [] as unknown as InstagramMedia[],
+    );
 
     // Segunda-feira 27/07/2026 02:00 UTC → semana anterior: 20-26/07
     const results = await generateWeeklyReportsForAllTenants(new Date("2026-07-27T02:00:00Z"));
