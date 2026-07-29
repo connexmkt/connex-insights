@@ -1,5 +1,5 @@
 import { generateWeeklyReportsForAllTenants as generateAllWeekly } from "@/lib/instagram/reports/weekly-report-generator";
-import { sendWeeklyReport } from "@/lib/instagram/reports/report-sender";
+import { sendWeeklyReportToCrm } from "@/lib/instagram/reports/report-sender";
 import type { WeeklyReportIngestRequest } from "@/lib/instagram/reports/report-types";
 
 import {
@@ -63,7 +63,7 @@ export async function sendPendingWeeklyReportsForAllTenantsToCrm(): Promise<Send
   for (const row of pending) {
     const payload = row.payload as WeeklyReportIngestRequest;
 
-    const result = await sendWeeklyReport(payload);
+    const result = await sendWeeklyReportToCrm(payload);
 
     if (result.ok) {
       await markPendingReportAsSent(row.id);

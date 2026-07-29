@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getInstagramConfig } from "@/lib/instagram/config";
-import { sendMonthlyReportsForAllTenants } from "@/lib/instagram/reports/monthly-report.service";
+import { sendPendingMonthlyReportsForAllTenantsToCrm } from "@/lib/instagram/reports/monthly-report.service";
 
 function verifyCronSecret(request: Request): boolean {
   const config = getInstagramConfig();
@@ -23,6 +23,6 @@ export async function GET(request: Request): Promise<Response> {
     return NextResponse.json({ skipped: true, reason: "not-first-week" });
   }
 
-  const result = await sendMonthlyReportsForAllTenants();
+  const result = await sendPendingMonthlyReportsForAllTenantsToCrm();
   return NextResponse.json(result);
 }
