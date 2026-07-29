@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { SessionProvider } from "@/components/auth/session-provider";
 import { SidebarNav } from "@/components/dashboard/sidebar-nav";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
@@ -13,7 +12,6 @@ export function DashboardShell({
   session: TenantContext;
   children: React.ReactNode;
 }) {
-  const [period, setPeriod] = useState("Últimos 30 dias");
 
   return (
     <SessionProvider session={session}>
@@ -22,11 +20,7 @@ export function DashboardShell({
           <SidebarNav />
         </aside>
         <div className="flex min-w-0 flex-1 flex-col">
-          <DashboardHeader
-            session={session}
-            period={period}
-            onPeriodChange={setPeriod}
-          />
+          <DashboardHeader session={session} />
           <main className="flex-1 px-4 py-6 lg:px-8 lg:py-8">{children}</main>
         </div>
       </div>
