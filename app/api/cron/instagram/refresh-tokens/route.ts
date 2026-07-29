@@ -16,8 +16,6 @@ function verifyCronSecret(request: Request): boolean {
   return authHeader === `Bearer ${config.cronSecret}`;
 }
 
-// A Vercel sempre invoca cron jobs com GET — um handler POST aqui faz todo
-// disparo do cron retornar 405 e o refresh de tokens nunca rodar.
 export async function GET(request: Request): Promise<Response> {
   getInstagramConfig();
 

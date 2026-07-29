@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getInstagramConfig } from "@/lib/instagram/config";
-import { runDailySyncForAllTenants } from "@/lib/instagram/cron/cron-service";
+import { sendMonthlyReportsForAllTenants } from "@/lib/instagram/reports/monthly-report.service";
 
 function verifyCronSecret(request: Request): boolean {
   const config = getInstagramConfig();
@@ -18,6 +18,11 @@ export async function GET(request: Request): Promise<Response> {
     );
   }
 
-  const result = await runDailySyncForAllTenants();
+  const today = new Date();
+  if (today.getUTCDate() > 7) {
+    return NextResponse.json({ skipped: true, reason: "not-first-week" });
+  }
+
+  const result = await sendMonthlyReportsForAllTenants();
   return NextResponse.json(result);
 }

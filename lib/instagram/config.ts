@@ -3,15 +3,17 @@ import { z } from "zod";
 const instagramConfigSchema = z.object({
   appId: z.string().min(1),
   appSecret: z.string().min(1),
-  redirectUri: z.string().url(),
+  redirectUri: z.url(),
   oauthScopes: z.array(z.string().min(1)).min(1),
   tokenEncryptionKey: z.string().min(1),
   oauthStateSecret: z.string().min(1),
   cronSecret: z.string().min(1),
-  appUrl: z.string().url(),
+  appUrl: z.url(),
   syncBatchSize: z.number().int().positive().default(25),
   syncMaxRetries: z.number().int().positive().default(3),
   metricRetentionDays: z.number().int().positive().default(90),
+  connexCrmUrl: z.url(),
+  connexInsightsIngestSecret: z.string().min(1),
 });
 
 export type InstagramConfig = z.infer<typeof instagramConfigSchema>;
@@ -49,6 +51,8 @@ export function getInstagramConfig(): InstagramConfig {
       process.env.INSTAGRAM_METRIC_RETENTION_DAYS ?? "90",
       10,
     ),
+    connexCrmUrl: process.env.CONNEX_CRM_URL,
+    connexInsightsIngestSecret: process.env.CONNEX_INSIGHTS_INGEST_SECRET,
   });
 
   if (!parsed.success) {

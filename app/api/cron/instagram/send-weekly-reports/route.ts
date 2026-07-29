@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getInstagramConfig } from "@/lib/instagram/config";
-import { runDailySyncForAllTenants } from "@/lib/instagram/cron/cron-service";
+import { sendWeeklyReportsForAllTenants } from "@/lib/instagram/reports/weekly-report.service";
 
 function verifyCronSecret(request: Request): boolean {
   const config = getInstagramConfig();
@@ -18,6 +18,6 @@ export async function GET(request: Request): Promise<Response> {
     );
   }
 
-  const result = await runDailySyncForAllTenants();
+  const result = await sendWeeklyReportsForAllTenants();
   return NextResponse.json(result);
 }
