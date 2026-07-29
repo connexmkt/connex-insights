@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.1](https://github.com/connexmkt/connex-insights/compare/v1.4.0...v1.4.1) (2026-07-29)
+
+### Bug Fixes
+
+* Conserta rota de página de ativação de conta ([a585f85](https://github.com/connexmkt/connex-insights/commit/a585f8504f102035a7ecbdf729d7a0356378ab6d))
+
 ## [1.4.0](https://github.com/connexmkt/connex-insights/compare/v1.3.1...v1.4.0) (2026-07-27)
 
 ### Features
